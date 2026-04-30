@@ -1,0 +1,75 @@
+import Icon from "@/components/ui/icon";
+import { navItems, Page } from "@/data/mockData";
+
+interface SidebarProps {
+  page: Page;
+  setPage: (p: Page) => void;
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+}
+
+export default function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
+  return (
+    <aside
+      className="flex flex-col border-r border-border transition-all duration-300 flex-shrink-0 relative"
+      style={{
+        width: collapsed ? 60 : 220,
+        background: "linear-gradient(180deg, rgba(168,85,247,0.04) 0%, transparent 40%)",
+      }}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-border">
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          <Icon name="Zap" size={15} className="text-white" />
+        </div>
+        {!collapsed && (
+          <span className="font-bold text-base gradient-text tracking-tight">MailFlow</span>
+        )}
+        <button
+          className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <Icon name={collapsed ? "ChevronRight" : "ChevronLeft"} size={15} />
+        </button>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
+        {navItems.map((item) => {
+          const active = page === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setPage(item.id)}
+              className={`nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                active
+                  ? "active text-white font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              }`}
+              style={active ? { background: "linear-gradient(135deg, rgba(168,85,247,0.25), rgba(34,211,238,0.1))" } : {}}
+              title={collapsed ? item.label : undefined}
+            >
+              <Icon name={item.icon} size={17} className="flex-shrink-0" />
+              {!collapsed && <span className="truncate">{item.label}</span>}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* User */}
+      <div className={`border-t border-border p-3 flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 text-white"
+          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          А
+        </div>
+        {!collapsed && (
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-medium truncate">Алексей С.</div>
+            <div className="text-[10px] text-muted-foreground truncate">admin@company.ru</div>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
