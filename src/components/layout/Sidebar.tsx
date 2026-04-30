@@ -24,7 +24,7 @@ export default function Sidebar({ page, setPage, collapsed, setCollapsed }: Side
           <Icon name="Zap" size={15} className="text-white" />
         </div>
         {!collapsed && (
-          <span className="font-bold text-base gradient-text tracking-tight">MailFlow</span>
+          <span className="font-bold text-base gradient-text tracking-tight">MAIL-KA</span>
         )}
         <button
           className="ml-auto text-muted-foreground hover:text-foreground transition-colors"

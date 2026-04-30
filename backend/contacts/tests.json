@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "GET contacts list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"contacts": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST create contact",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Тест Тестов", "email": "test_mailka_unique@test.ru", "segment": "Новый"},
+      "expectedStatus": 201,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -70,7 +70,7 @@ export function EmailEditor() {
             <div className="p-4">
               <div className="max-w-lg mx-auto rounded-xl overflow-hidden" style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <div className="p-6 text-center" style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
-                  <div className="text-white font-bold text-lg">MailFlow</div>
+                  <div className="text-white font-bold text-lg">MAIL-KA</div>
                   <div className="text-white/70 text-sm mt-1">{subject}</div>
                 </div>
                 <div className="p-6">

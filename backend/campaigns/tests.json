@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "GET campaigns list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"campaigns": [], "stats": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST create campaign",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Тестовая кампания", "subject": "Привет!", "status": "draft"},
+      "expectedStatus": 201,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
