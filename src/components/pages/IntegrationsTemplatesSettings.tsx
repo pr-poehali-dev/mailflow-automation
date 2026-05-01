@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { StatusBadge } from "@/components/shared";
 import { Page, mockTemplates } from "@/data/mockData";
-import { fetchEmailLogs, fetchUnisenderStatus, EmailLog, UnisenderStatus } from "@/api";
+import { fetchEmailLogs, fetchUnisenderStatus } from "@/api/index";
+import type { EmailLog, UnisenderStatus } from "@/api/index";
 
 // ─── Integrations ─────────────────────────────────────────────────────────────
 

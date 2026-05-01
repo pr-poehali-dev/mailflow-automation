@@ -87,7 +87,7 @@ export async function deleteCampaign(id: number): Promise<void> {
   await fetch(`${CAMPAIGNS_URL}/${id}`, { method: "DELETE" });
 }
 
-// ─── Email sending ─────────────────────────────────────────────────────────────
+// ─── Email sending (Unisender) ─────────────────────────────────────────────────
 
 export interface EmailLog {
   id: number;
@@ -110,10 +110,10 @@ export interface UnisenderStatus {
   error?: string;
 }
 
-export async function fetchUnisenderStatus(): Promise<UnisenderStatus> {
+export const fetchUnisenderStatus = async (): Promise<UnisenderStatus> => {
   const r = await fetch(`${SEND_EMAIL_URL}?action=status`);
   return r.json();
-}
+};
 
 export async function sendTestEmail(data: {
   to: string; subject: string; text: string; from_name?: string; from_email?: string;
