@@ -21,20 +21,33 @@ CORS = {
 }
 
 POLZA_URL = "https://api.polza.ai/api/v1/chat/completions"
-MODEL = "openai/gpt-4o-mini"
+DEFAULT_MODEL = "openai/gpt-4o-mini"
+
+ALLOWED_MODELS = {
+    "openai/gpt-4o-mini",
+    "openai/gpt-4o",
+    "anthropic/claude-3.5-sonnet",
+    "anthropic/claude-3.5-haiku",
+    "deepseek/deepseek-chat",
+    "google/gemini-2.0-flash",
+    "meta-llama/llama-3.3-70b",
+}
 
 
 def resp(status: int, body: dict) -> dict:
     return {"statusCode": status, "headers": CORS, "body": json.dumps(body, ensure_ascii=False)}
 
 
-def call_openai(messages: list, temperature: float = 0.8, json_mode: bool = False) -> dict:
+def call_openai(messages: list, temperature: float = 0.8, json_mode: bool = False, model: str = DEFAULT_MODEL) -> dict:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return {"ok": False, "error": "POLZA_AI_API_KEY не настроен. Добавь его в Секреты."}
 
+    if model not in ALLOWED_MODELS:
+        model = DEFAULT_MODEL
+
     payload = {
-        "model": MODEL,
+        "model": model,
         "messages": messages,
         "temperature": temperature,
     }
@@ -76,6 +89,8 @@ def handler(event: dict, context) -> dict:
     except Exception:
         body = {}
 
+    chosen_model = body.get("model") or DEFAULT_MODEL
+
     # ── Генерация письма по brief ────────────────────────────────────────────
     if action == "generate":
         brief = body.get("brief", "").strip()
@@ -105,7 +120,7 @@ def handler(event: dict, context) -> dict:
         result = call_openai([
             {"role": "system", "content": system},
             {"role": "user", "content": user},
-        ], temperature=0.85, json_mode=True)
+        ], temperature=0.85, json_mode=True, model=chosen_model)
 
         if not result["ok"]:
             return resp(502, result)
@@ -133,7 +148,7 @@ def handler(event: dict, context) -> dict:
         result = call_openai([
             {"role": "system", "content": system},
             {"role": "user", "content": user},
-        ], temperature=0.7)
+        ], temperature=0.7, model=chosen_model)
 
         if not result["ok"]:
             return resp(502, result)
@@ -158,7 +173,7 @@ def handler(event: dict, context) -> dict:
         result = call_openai([
             {"role": "system", "content": system},
             {"role": "user", "content": user},
-        ], temperature=0.95, json_mode=True)
+        ], temperature=0.95, json_mode=True, model=chosen_model)
 
         if not result["ok"]:
             return resp(502, result)
@@ -185,7 +200,7 @@ def handler(event: dict, context) -> dict:
         result = call_openai([
             {"role": "system", "content": system},
             {"role": "user", "content": user},
-        ], temperature=0.3, json_mode=True)
+        ], temperature=0.3, json_mode=True, model=chosen_model)
 
         if not result["ok"]:
             return resp(502, result)
@@ -212,7 +227,7 @@ def handler(event: dict, context) -> dict:
         result = call_openai([
             {"role": "system", "content": system},
             {"role": "user", "content": f"Тема: {subject}"},
-        ], temperature=0.4, json_mode=True)
+        ], temperature=0.4, json_mode=True, model=chosen_model)
 
         if not result["ok"]:
             return resp(502, result)
@@ -239,7 +254,7 @@ def handler(event: dict, context) -> dict:
         result = call_openai([
             {"role": "system", "content": system},
             {"role": "user", "content": query},
-        ], temperature=0.5, json_mode=True)
+        ], temperature=0.5, json_mode=True, model=chosen_model)
 
         if not result["ok"]:
             return resp(502, result)

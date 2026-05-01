@@ -1,6 +1,7 @@
 const CONTACTS_URL = "https://functions.poehali.dev/e938db61-de81-42d6-bc17-6817a4a5b16a";
 const CAMPAIGNS_URL = "https://functions.poehali.dev/13fdf164-c160-4754-9ca2-83d129d19672";
 export const SEND_EMAIL_URL = "https://functions.poehali.dev/9861b492-d3a2-48ef-9407-3b07e1d55181";
+export const AI_URL = "https://functions.poehali.dev/c68bcc0b-3f9c-41f3-a8a7-ece9ae02be61";
 
 export interface Contact {
   id: number;
@@ -183,5 +184,81 @@ export async function sendCampaignBlast(data: {
 
 export async function fetchEmailLogs(): Promise<{ logs: EmailLog[] }> {
   const r = await fetch(`${SEND_EMAIL_URL}?action=logs`);
+  return r.json();
+}
+
+// ─── AI Copywriter (polza.ai) ─────────────────────────────────────────────────
+
+export interface AiGenerateResult {
+  ok: boolean;
+  subject?: string;
+  preheader?: string;
+  body?: string;
+  cta_text?: string;
+  error?: string;
+  tokens?: number;
+}
+
+export interface AiSubjectVariant {
+  type: string;
+  text: string;
+  why: string;
+}
+
+export interface AiSpamCheck {
+  ok: boolean;
+  spam_score: number;
+  issues: string[];
+  suggestions: string[];
+  readability: string;
+}
+
+export interface AiPredict {
+  ok: boolean;
+  predicted_open_rate: number;
+  rating: string;
+  reason: string;
+  improvements: string[];
+}
+
+export async function aiGenerate(data: {
+  brief: string; tone?: string; audience?: string; goal?: string; model?: string;
+}): Promise<AiGenerateResult> {
+  const r = await fetch(`${AI_URL}?action=generate`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+export async function aiImprove(text: string, instruction: string, model?: string): Promise<{ ok: boolean; text?: string; error?: string }> {
+  const r = await fetch(`${AI_URL}?action=improve`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, instruction, model }),
+  });
+  return r.json();
+}
+
+export async function aiSubjects(body: string, context?: string, model?: string): Promise<{ ok: boolean; variants?: AiSubjectVariant[]; error?: string }> {
+  const r = await fetch(`${AI_URL}?action=subject`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body, context, model }),
+  });
+  return r.json();
+}
+
+export async function aiSpamCheck(subject: string, text: string, model?: string): Promise<AiSpamCheck> {
+  const r = await fetch(`${AI_URL}?action=spam_check`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subject, text, model }),
+  });
+  return r.json();
+}
+
+export async function aiPredict(subject: string, model?: string): Promise<AiPredict> {
+  const r = await fetch(`${AI_URL}?action=predict`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subject, model }),
+  });
   return r.json();
 }

@@ -13,8 +13,21 @@ interface Props {
 
 type Tab = "generate" | "subjects" | "improve" | "check" | "predict";
 
+const MODELS = [
+  { id: "openai/gpt-4o-mini",          name: "GPT-4o mini",     desc: "Быстрая, дешёвая",    icon: "Zap",      color: "#10b981", price: "₽0.10/100" },
+  { id: "openai/gpt-4o",               name: "GPT-4o",          desc: "Топ от OpenAI",       icon: "Crown",    color: "#8b5cf6", price: "₽1.50/100" },
+  { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5",      desc: "Лучший копирайтер",   icon: "Sparkles", color: "#ec4899", price: "₽1.20/100" },
+  { id: "anthropic/claude-3.5-haiku",  name: "Claude Haiku",    desc: "Шустрый Anthropic",   icon: "Wind",     color: "#f59e0b", price: "₽0.30/100" },
+  { id: "deepseek/deepseek-chat",      name: "DeepSeek",        desc: "Недорогой китаец",    icon: "Cpu",      color: "#06b6d4", price: "₽0.05/100" },
+  { id: "google/gemini-2.0-flash",     name: "Gemini 2.0",      desc: "Google Flash",        icon: "Star",     color: "#0891b2", price: "₽0.15/100" },
+  { id: "meta-llama/llama-3.3-70b",    name: "Llama 3.3 70B",   desc: "Open-source Meta",    icon: "Box",      color: "#7c3aed", price: "₽0.20/100" },
+];
+
 export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onApplyAll }: Props) {
   const [tab, setTab] = useState<Tab>("generate");
+  const [model, setModel] = useState<string>(MODELS[0].id);
+  const [showModelPicker, setShowModelPicker] = useState(false);
+  const currentModel = MODELS.find((m) => m.id === model) || MODELS[0];
 
   // Generate
   const [brief, setBrief] = useState("");
@@ -46,7 +59,7 @@ export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onAppl
   const handleGenerate = async () => {
     if (!brief.trim()) return;
     setGenerating(true); setError(""); setGenResult(null);
-    const r = await aiGenerate({ brief, tone, audience, goal });
+    const r = await aiGenerate({ brief, tone, audience, goal, model });
     setGenerating(false);
     if (!r.ok) { setError(r.error || "Ошибка"); return; }
     setGenResult({
@@ -60,7 +73,7 @@ export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onAppl
   const handleSubjects = async () => {
     if (!body.trim()) { setError("Сначала напиши текст письма"); return; }
     setLoadingSubjects(true); setError("");
-    const r = await aiSubjects(body, brief);
+    const r = await aiSubjects(body, brief, model);
     setLoadingSubjects(false);
     if (!r.ok) { setError(r.error || "Ошибка"); return; }
     setSubjectsState(r.variants || []);
@@ -70,7 +83,7 @@ export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onAppl
     const inst = preset || instruction;
     if (!body.trim() || !inst) return;
     setImproving(true); setError(""); setImprovedText("");
-    const r = await aiImprove(body, inst);
+    const r = await aiImprove(body, inst, model);
     setImproving(false);
     if (!r.ok) { setError(r.error || "Ошибка"); return; }
     setImprovedText(r.text || "");
@@ -79,7 +92,7 @@ export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onAppl
   const handleSpamCheck = async () => {
     if (!subject && !body) return;
     setChecking(true); setError(""); setSpamResult(null);
-    const r = await aiSpamCheck(subject, body);
+    const r = await aiSpamCheck(subject, body, model);
     setChecking(false);
     if (!r.ok) { setError("Ошибка"); return; }
     setSpamResult(r);
@@ -88,7 +101,7 @@ export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onAppl
   const handlePredict = async () => {
     if (!subject.trim()) { setError("Введи тему письма"); return; }
     setPredicting(true); setError(""); setPredictResult(null);
-    const r = await aiPredict(subject);
+    const r = await aiPredict(subject, model);
     setPredicting(false);
     if (!r.ok) { setError("Ошибка"); return; }
     setPredictResult(r);
@@ -110,9 +123,52 @@ export function AiAssistant({ subject, body, onApplySubject, onApplyBody, onAppl
           style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Sparkles" size={14} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm">AI-ассистент</div>
-          <div className="text-[10px] text-muted-foreground">GPT-4o · копирайтинг, проверка, прогноз</div>
+          <div className="text-[10px] text-muted-foreground truncate">polza.ai · копирайтинг и аналитика</div>
+        </div>
+        <div className="relative">
+          <button
+            onClick={() => setShowModelPicker((v) => !v)}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-lg glass hover:bg-white/8 transition-colors text-xs">
+            <Icon name={currentModel.icon} size={11} style={{ color: currentModel.color }} />
+            <span className="font-semibold">{currentModel.name}</span>
+            <Icon name="ChevronDown" size={10} className="text-muted-foreground" />
+          </button>
+          {showModelPicker && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setShowModelPicker(false)} />
+              <div className="absolute right-0 top-full mt-1.5 z-40 w-64 rounded-xl glass shadow-2xl overflow-hidden fade-in-up"
+                style={{ border: "1px solid rgba(139,92,246,0.25)" }}>
+                <div className="px-3 py-2 border-b border-border">
+                  <div className="text-xs font-semibold">Выбери модель</div>
+                  <div className="text-[10px] text-muted-foreground">Цена за 100 запросов</div>
+                </div>
+                <div className="max-h-72 overflow-y-auto">
+                  {MODELS.map((m) => (
+                    <button key={m.id}
+                      onClick={() => { setModel(m.id); setShowModelPicker(false); }}
+                      className={`w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-white/5 transition-colors ${
+                        m.id === model ? "bg-white/5" : ""
+                      }`}>
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
+                        <Icon name={m.icon} size={13} style={{ color: m.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold flex items-center gap-1.5">
+                          {m.name}
+                          {m.id === model && <Icon name="Check" size={10} style={{ color: "#10b981" }} />}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground truncate">{m.desc}</div>
+                      </div>
+                      <span className="text-[9px] font-mono-custom text-muted-foreground flex-shrink-0">{m.price}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
