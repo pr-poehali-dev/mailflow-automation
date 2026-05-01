@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Page } from "@/data/mockData";
 import Sidebar from "@/components/layout/Sidebar";
 import Seo from "@/components/Seo";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import PaymentSuccessPage from "@/components/pages/PaymentSuccessPage";
 import {
   Dashboard,
   Campaigns,
@@ -22,6 +23,15 @@ import PricingPage from "@/components/pages/PricingPage";
 export default function App() {
   const [page, setPage] = useState<Page>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // Если ЮKassa вернула пользователя с ?payment=success — показываем экран благодарности
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      setPaymentSuccess(true);
+    }
+  }, []);
 
   const pageMap: Record<Page, JSX.Element> = {
     dashboard: <Dashboard setPage={setPage} />,
@@ -55,10 +65,16 @@ export default function App() {
         <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full opacity-25 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent)" }} />
         <div className="relative z-10">
-          <div className="px-6 pt-4">
-            <Breadcrumbs page={page} setPage={setPage} />
-          </div>
-          {pageMap[page]}
+          {paymentSuccess ? (
+            <PaymentSuccessPage setPage={(p) => { setPaymentSuccess(false); setPage(p); }} />
+          ) : (
+            <>
+              <div className="px-6 pt-4">
+                <Breadcrumbs page={page} setPage={setPage} />
+              </div>
+              {pageMap[page]}
+            </>
+          )}
         </div>
       </main>
     </div>
