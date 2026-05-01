@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { StatusBadge } from "@/components/shared";
 import { Page, mockTemplates } from "@/data/mockData";
-import { fetchEmailLogs, EmailLog } from "@/api";
+import { fetchEmailLogs, fetchUnisenderStatus, EmailLog, UnisenderStatus } from "@/api";
 
 // ─── Integrations ─────────────────────────────────────────────────────────────
 
@@ -10,6 +10,8 @@ export function Integrations() {
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [status, setStatus] = useState<UnisenderStatus | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(true);
 
   const loadLogs = async () => {
     setLoadingLogs(true);
@@ -18,41 +20,78 @@ export function Integrations() {
     setLoadingLogs(false);
   };
 
-  useEffect(() => { loadLogs(); }, []);
+  const loadStatus = async () => {
+    setLoadingStatus(true);
+    try {
+      const s = await fetchUnisenderStatus();
+      setStatus(s);
+    } catch {
+      setStatus({ provider: "Unisender", connected: false, error: "Сервис недоступен" });
+    }
+    setLoadingStatus(false);
+  };
+
+  useEffect(() => { loadLogs(); loadStatus(); }, []);
+
+  const isConnected = status?.connected === true;
 
   const integrationList = [
-    { name: "Mailgun", icon: "🚀", status: "connected", desc: "Email-доставка — активна", detail: "Письма отправляются через Mailgun API. Настрой домен в Mailgun → Sending → Domains." },
+    {
+      name: "Unisender",
+      icon: "📮",
+      status: isConnected ? "connected" : "disconnected",
+      desc: "Российский email-сервис · 152-ФЗ",
+      detail: isConnected ? "Письма доставляются через Unisender (РФ). Серверы в России, оплата с карт РФ." : "Не подключён — добавь UNISENDER_API_KEY в секреты",
+    },
+    { name: "СберПочта Cloud", icon: "💚", status: "disconnected", desc: "Транзакционные письма от Сбера" },
     { name: "Bitrix24", icon: "🔗", status: "disconnected", desc: "CRM синхронизация" },
     { name: "amoCRM", icon: "💼", status: "disconnected", desc: "Контакты и сделки" },
-    { name: "SendGrid", icon: "📤", status: "disconnected", desc: "Альтернативный SMTP" },
     { name: "Telegram Bot", icon: "✈️", status: "disconnected", desc: "Уведомления в чат" },
     { name: "Webhook", icon: "⚡", status: "disconnected", desc: "Кастомные события" },
   ];
 
   const fmtDate = (iso: string) => new Date(iso).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
+  const statusBg = isConnected ? "rgba(74,222,128,0.07)" : "rgba(251,146,60,0.07)";
+  const statusBorder = isConnected ? "rgba(74,222,128,0.25)" : "rgba(251,146,60,0.25)";
+  const statusColor = isConnected ? "#4ade80" : "#fb923c";
+
   return (
     <div className="p-6 space-y-5">
       <div className="fade-in-up">
         <h1 className="text-2xl font-bold">Интеграции</h1>
-        <p className="text-muted-foreground text-sm mt-0.5">CRM, почтовые сервисы, вебхуки</p>
+        <p className="text-muted-foreground text-sm mt-0.5">CRM, российские почтовые сервисы, вебхуки</p>
       </div>
 
-      {/* Mailgun status banner */}
-      <div className="rounded-2xl p-4" style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.25)" }}>
-        <div className="flex items-center gap-3">
-          <div className="text-2xl">🚀</div>
-          <div className="flex-1">
+      {/* Unisender status banner */}
+      <div className="rounded-2xl p-4" style={{ background: statusBg, border: `1px solid ${statusBorder}` }}>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="text-3xl">📮</div>
+          <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm flex items-center gap-2">
-              Mailgun подключён
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+              {loadingStatus ? "Проверяем подключение..." : isConnected ? "Unisender подключён" : "Unisender не подключён"}
+              <span className="text-xs">🇷🇺</span>
+              {!loadingStatus && (
+                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: statusColor, animation: isConnected ? "pulse 2s infinite" : "none" }} />
+              )}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">Реальная доставка email активна · {logs.length} писем отправлено</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {isConnected ? (
+                <>
+                  {status?.email && <span>{status.email} · </span>}
+                  Баланс: <span className="text-foreground font-semibold">{status?.balance} {status?.currency}</span>
+                  {status?.tariff && <span> · {status.tariff}</span>}
+                  <span> · {logs.length} писем отправлено</span>
+                </>
+              ) : (
+                <span>{status?.error || "Добавь UNISENDER_API_KEY в секреты, чтобы отправлять письма"}</span>
+              )}
+            </div>
           </div>
           <button
             onClick={() => setShowLogs(!showLogs)}
-            className="text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5"
-            style={{ background: "rgba(74,222,128,0.15)", color: "#4ade80" }}>
+            className="text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 flex-shrink-0"
+            style={{ background: `${statusColor}25`, color: statusColor }}>
             <Icon name="Activity" size={12} />
             {showLogs ? "Скрыть лог" : "Лог отправок"}
           </button>

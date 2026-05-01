@@ -94,15 +94,30 @@ export interface EmailLog {
   to: string;
   subject: string;
   status: string;
-  mailgun_id: string | null;
+  provider_id: string | null;
   error: string | null;
   sent_at: string;
   campaign: string | null;
 }
 
+export interface UnisenderStatus {
+  provider: string;
+  connected: boolean;
+  email?: string;
+  balance?: string;
+  currency?: string;
+  tariff?: string;
+  error?: string;
+}
+
+export async function fetchUnisenderStatus(): Promise<UnisenderStatus> {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=status`);
+  return r.json();
+}
+
 export async function sendTestEmail(data: {
   to: string; subject: string; text: string; from_name?: string; from_email?: string;
-}): Promise<{ ok: boolean; error?: string; mailgun_id?: string }> {
+}): Promise<{ ok: boolean; error?: string; message_id?: string; provider?: string }> {
   const r = await fetch(`${SEND_EMAIL_URL}?action=test`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

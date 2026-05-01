@@ -1,11 +1,13 @@
 """
-Сервис отправки email через Mailgun для MAIL-KA.
+Сервис отправки email через Unisender (российский) для MAIL-KA.
 Поддерживает: одиночная отправка, массовая рассылка по кампании, тест-письмо.
+Документация Unisender API: https://www.unisender.com/ru/support/api/
 """
 import json
 import os
 import urllib.request
 import urllib.parse
+import urllib.error
 import psycopg2
 
 SCHEMA = "t_p46602131_mailflow_automation"
@@ -25,43 +27,124 @@ def resp(status: int, body: dict) -> dict:
     return {"statusCode": status, "headers": CORS, "body": json.dumps(body, ensure_ascii=False, default=str)}
 
 
-def send_via_mailgun(to: str, subject: str, html: str, text: str, from_name: str, from_email: str, reply_to: str = "") -> dict:
-    """Отправляет письмо через Mailgun API."""
-    api_key = os.environ.get("MAILGUN_API_KEY", "")
-    domain = os.environ.get("MAILGUN_DOMAIN", "")
+def send_via_unisender(to: str, subject: str, html: str, text: str, from_name: str, from_email: str, reply_to: str = "") -> dict:
+    """Отправляет письмо через Unisender API (sendEmail)."""
+    api_key = os.environ.get("UNISENDER_API_KEY", "")
 
-    if not api_key or not domain:
-        return {"ok": False, "error": "MAILGUN_API_KEY или MAILGUN_DOMAIN не настроены"}
+    if not api_key:
+        return {"ok": False, "error": "UNISENDER_API_KEY не настроен. Получи ключ на cp.unisender.com → Настройки → Интеграция и API"}
 
-    from_addr = f"{from_name} <noreply@{domain}>" if not from_email else f"{from_name} <{from_email}>"
+    sender_email = from_email or "noreply@mail-ka.ru"
+    sender_name = from_name or "MAIL-KA"
 
-    data = urllib.parse.urlencode({
-        "from": from_addr,
-        "to": to,
+    params = {
+        "format": "json",
+        "api_key": api_key,
+        "email": to,
+        "sender_name": sender_name,
+        "sender_email": sender_email,
         "subject": subject,
-        "text": text,
-        "html": html,
-        **({"h:Reply-To": reply_to} if reply_to else {}),
-    }).encode("utf-8")
+        "body": html,
+        "list_id": "1",
+        "lang": "ru",
+    }
+    if reply_to:
+        params["reply_to"] = reply_to
 
-    url = f"https://api.mailgun.net/v3/{domain}/messages"
-    credentials = urllib.parse.quote(f"api:{api_key}", safe=":")
-    import base64
-    auth = base64.b64encode(f"api:{api_key}".encode()).decode()
+    data = urllib.parse.urlencode(params).encode("utf-8")
+    url = "https://api.unisender.com/ru/api/sendEmail"
 
     req = urllib.request.Request(url, data=data, method="POST")
-    req.add_header("Authorization", f"Basic {auth}")
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
 
     try:
-        with urllib.request.urlopen(req, timeout=15) as response:
+        with urllib.request.urlopen(req, timeout=20) as response:
             result = json.loads(response.read().decode())
-            return {"ok": True, "mailgun_id": result.get("id", ""), "message": result.get("message", "")}
+            if "error" in result:
+                err = result.get("error", "")
+                code = result.get("code", "")
+                # Если list_id не существует — создаём список и пробуем снова
+                if "list_id" in err.lower() or code == "invalid_arg":
+                    list_id = ensure_default_list(api_key)
+                    if list_id:
+                        params["list_id"] = str(list_id)
+                        data = urllib.parse.urlencode(params).encode("utf-8")
+                        req2 = urllib.request.Request(url, data=data, method="POST")
+                        req2.add_header("Content-Type", "application/x-www-form-urlencoded")
+                        with urllib.request.urlopen(req2, timeout=20) as r2:
+                            result = json.loads(r2.read().decode())
+                            if "error" not in result:
+                                msg_result = result.get("result", [{}])
+                                msg_id = msg_result[0].get("id", "") if isinstance(msg_result, list) and msg_result else ""
+                                return {"ok": True, "provider": "unisender", "message_id": str(msg_id)}
+                return {"ok": False, "error": f"Unisender: {err} (код: {code})"}
+
+            msg_result = result.get("result", [{}])
+            if isinstance(msg_result, list) and msg_result:
+                msg_id = msg_result[0].get("id", "")
+                err_in = msg_result[0].get("errors")
+                if err_in:
+                    return {"ok": False, "error": f"Unisender: {err_in}"}
+                return {"ok": True, "provider": "unisender", "message_id": str(msg_id)}
+            return {"ok": True, "provider": "unisender", "message_id": ""}
     except urllib.error.HTTPError as e:
-        body = e.read().decode()
-        return {"ok": False, "error": f"Mailgun HTTP {e.code}: {body}"}
+        body_err = e.read().decode()
+        return {"ok": False, "error": f"Unisender HTTP {e.code}: {body_err}"}
     except Exception as ex:
-        return {"ok": False, "error": str(ex)}
+        return {"ok": False, "error": f"Ошибка соединения с Unisender: {str(ex)}"}
+
+
+def ensure_default_list(api_key: str) -> int:
+    """Создаёт или находит дефолтный список рассылки в Unisender. Возвращает list_id."""
+    try:
+        # 1. Получаем существующие списки
+        url = "https://api.unisender.com/ru/api/getLists"
+        data = urllib.parse.urlencode({"format": "json", "api_key": api_key}).encode()
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req, timeout=10) as r:
+            result = json.loads(r.read().decode())
+            lists = result.get("result", [])
+            for lst in lists:
+                if lst.get("title") == "MAIL-KA":
+                    return lst.get("id")
+
+        # 2. Создаём новый
+        url2 = "https://api.unisender.com/ru/api/createList"
+        data2 = urllib.parse.urlencode({"format": "json", "api_key": api_key, "title": "MAIL-KA"}).encode()
+        req2 = urllib.request.Request(url2, data=data2, method="POST")
+        req2.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req2, timeout=10) as r:
+            result = json.loads(r.read().decode())
+            return result.get("result", {}).get("id", 0)
+    except Exception:
+        return 0
+
+
+def check_unisender_balance() -> dict:
+    """Проверяет баланс аккаунта Unisender."""
+    api_key = os.environ.get("UNISENDER_API_KEY", "")
+    if not api_key:
+        return {"connected": False, "error": "UNISENDER_API_KEY не настроен"}
+    try:
+        url = "https://api.unisender.com/ru/api/getUserInfo"
+        data = urllib.parse.urlencode({"format": "json", "api_key": api_key}).encode()
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req, timeout=10) as r:
+            result = json.loads(r.read().decode())
+            if "error" in result:
+                return {"connected": False, "error": result.get("error")}
+            info = result.get("result", {})
+            return {
+                "connected": True,
+                "email": info.get("email", ""),
+                "balance": info.get("balance", "0"),
+                "currency": info.get("currency", "RUB"),
+                "tariff": info.get("tariff", ""),
+            }
+    except Exception as ex:
+        return {"connected": False, "error": str(ex)}
 
 
 def substitute_vars(text: str, contact: dict) -> str:
@@ -128,6 +211,12 @@ def handler(event: dict, context) -> dict:
 
     conn = get_conn()
 
+    # ── GET ?action=status — статус подключения к Unisender ──────────────────
+    if method == "GET" and action == "status":
+        info = check_unisender_balance()
+        conn.close()
+        return resp(200, {"provider": "Unisender", **info})
+
     # ── GET ?action=logs — история отправок ──────────────────────────────────
     if method == "GET" and action == "logs":
         cur = conn.cursor()
@@ -143,7 +232,7 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return resp(200, {"logs": [
             {"id": r[0], "to": r[1], "subject": r[2], "status": r[3],
-             "mailgun_id": r[4], "error": r[5], "sent_at": r[6], "campaign": r[7]}
+             "provider_id": r[4], "error": r[5], "sent_at": r[6], "campaign": r[7]}
             for r in rows
         ]})
 
@@ -160,12 +249,12 @@ def handler(event: dict, context) -> dict:
             return resp(400, {"error": "Укажи email получателя в поле 'to'"})
 
         html = text_to_html(text, from_name)
-        result = send_via_mailgun(to, subject, html, text, from_name, from_email)
+        result = send_via_unisender(to, subject, html, text, from_name, from_email)
 
         cur = conn.cursor()
         cur.execute(
             f"INSERT INTO {SCHEMA}.email_logs (to_email, subject, status, mailgun_id, error_msg) VALUES (%s, %s, %s, %s, %s)",
-            (to, subject, "sent" if result["ok"] else "failed", result.get("mailgun_id"), result.get("error"))
+            (to, subject, "sent" if result["ok"] else "failed", result.get("message_id"), result.get("error"))
         )
         conn.commit()
         cur.close()
@@ -200,12 +289,12 @@ def handler(event: dict, context) -> dict:
         personalized_subject = substitute_vars(subject, contact)
         html = text_to_html(personalized_text, from_name)
 
-        result = send_via_mailgun(to, personalized_subject, html, personalized_text, from_name, from_email, reply_to)
+        result = send_via_unisender(to, personalized_subject, html, personalized_text, from_name, from_email, reply_to)
 
         cur.execute(
             f"INSERT INTO {SCHEMA}.email_logs (campaign_id, contact_id, to_email, subject, status, mailgun_id, error_msg) VALUES (%s, %s, %s, %s, %s, %s, %s)",
             (campaign_id, contact_id, to, personalized_subject,
-             "sent" if result["ok"] else "failed", result.get("mailgun_id"), result.get("error"))
+             "sent" if result["ok"] else "failed", result.get("message_id"), result.get("error"))
         )
         if campaign_id and result["ok"]:
             cur.execute(f"UPDATE {SCHEMA}.campaigns SET sent_count = sent_count + 1 WHERE id = %s", (campaign_id,))
@@ -265,7 +354,7 @@ def handler(event: dict, context) -> dict:
             personalized_subject = substitute_vars(camp_data["subject"], contact)
             html = text_to_html(personalized_text, camp_data["from_name"])
 
-            result = send_via_mailgun(
+            result = send_via_unisender(
                 c[2], personalized_subject, html, personalized_text,
                 camp_data["from_name"], camp_data["from_email"], camp_data["reply_to"]
             )
@@ -273,7 +362,7 @@ def handler(event: dict, context) -> dict:
             cur.execute(
                 f"INSERT INTO {SCHEMA}.email_logs (campaign_id, contact_id, to_email, subject, status, mailgun_id, error_msg) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 (campaign_id, c[0], c[2], personalized_subject,
-                 "sent" if result["ok"] else "failed", result.get("mailgun_id"), result.get("error"))
+                 "sent" if result["ok"] else "failed", result.get("message_id"), result.get("error"))
             )
             if result["ok"]:
                 sent += 1
