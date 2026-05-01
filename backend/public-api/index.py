@@ -20,7 +20,12 @@ import json
 import os
 import hashlib
 import secrets
+import urllib.request
+import urllib.parse
+import base64
 import psycopg2
+
+SEND_EMAIL_URL = "https://functions.poehali.dev/9861b492-d3a2-48ef-9407-3b07e1d55181"
 
 SCHEMA = "t_p46602131_mailflow_automation"
 
@@ -261,28 +266,36 @@ def handler(event: dict, context) -> dict:
     if resource == "send" and method == "POST":
         to_email = body.get("to") or body.get("email", "")
         subject = body.get("subject", "")
+        text = body.get("message") or body.get("text") or body.get("body", "")
+        from_name = body.get("from_name", "MAIL-KA")
         campaign_id = body.get("campaign_id")
         if not to_email or not subject:
             log_event(conn, key_id, "send", body, "error", "Не указаны to/subject")
             conn.close()
             return resp(400, {"error": "Обязательные поля: to (email), subject"})
-        cur = conn.cursor()
-        cur.execute(f"SELECT id FROM {SCHEMA}.contacts WHERE email = %s", (to_email,))
-        contact = cur.fetchone()
-        if campaign_id:
-            cur.execute(f"UPDATE {SCHEMA}.campaigns SET sent_count = sent_count + 1 WHERE id = %s", (campaign_id,))
-            conn.commit()
-        cur.close()
-        log_event(conn, key_id, "send", {"to": to_email, "subject": subject, "campaign_id": campaign_id})
+
+        # Вызываем реальный send-email сервис
+        send_payload = json.dumps({
+            "to": to_email, "subject": subject, "text": text,
+            "from_name": from_name, "campaign_id": campaign_id
+        }).encode("utf-8")
+        send_req = urllib.request.Request(
+            f"{SEND_EMAIL_URL}?action=send",
+            data=send_payload, method="POST"
+        )
+        send_req.add_header("Content-Type", "application/json")
+        try:
+            with urllib.request.urlopen(send_req, timeout=20) as r:
+                send_result = json.loads(r.read().decode())
+        except Exception as ex:
+            send_result = {"ok": False, "error": str(ex)}
+
+        log_event(conn, key_id, "send",
+                  {"to": to_email, "subject": subject, "campaign_id": campaign_id},
+                  "ok" if send_result.get("ok") else "error",
+                  send_result.get("error"))
         conn.close()
-        return resp(200, {
-            "ok": True,
-            "queued": True,
-            "to": to_email,
-            "subject": subject,
-            "contact_found": contact is not None,
-            "note": "Письмо поставлено в очередь. Подключи SMTP в Настройках для реальной отправки."
-        })
+        return resp(200 if send_result.get("ok") else 502, send_result)
 
     if resource == "trigger" and method == "POST":
         event_name = body.get("event") or body.get("event_name", "")

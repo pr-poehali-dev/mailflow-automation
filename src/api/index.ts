@@ -1,5 +1,6 @@
 const CONTACTS_URL = "https://functions.poehali.dev/e938db61-de81-42d6-bc17-6817a4a5b16a";
 const CAMPAIGNS_URL = "https://functions.poehali.dev/13fdf164-c160-4754-9ca2-83d129d19672";
+export const SEND_EMAIL_URL = "https://functions.poehali.dev/9861b492-d3a2-48ef-9407-3b07e1d55181";
 
 export interface Contact {
   id: number;
@@ -84,4 +85,44 @@ export async function updateCampaign(id: number, data: Partial<Campaign>): Promi
 
 export async function deleteCampaign(id: number): Promise<void> {
   await fetch(`${CAMPAIGNS_URL}/${id}`, { method: "DELETE" });
+}
+
+// ─── Email sending ─────────────────────────────────────────────────────────────
+
+export interface EmailLog {
+  id: number;
+  to: string;
+  subject: string;
+  status: string;
+  mailgun_id: string | null;
+  error: string | null;
+  sent_at: string;
+  campaign: string | null;
+}
+
+export async function sendTestEmail(data: {
+  to: string; subject: string; text: string; from_name?: string; from_email?: string;
+}): Promise<{ ok: boolean; error?: string; mailgun_id?: string }> {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+export async function sendCampaignBlast(data: {
+  campaign_id: number; segment?: string;
+}): Promise<{ ok: boolean; sent: number; failed: number; total: number; errors?: { email: string; error: string }[] }> {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=blast`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+export async function fetchEmailLogs(): Promise<{ logs: EmailLog[] }> {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=logs`);
+  return r.json();
 }

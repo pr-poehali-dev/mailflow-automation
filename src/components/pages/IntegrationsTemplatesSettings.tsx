@@ -1,19 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { StatusBadge } from "@/components/shared";
-import { Page, mockTemplates, integrations } from "@/data/mockData";
+import { Page, mockTemplates } from "@/data/mockData";
+import { fetchEmailLogs, EmailLog } from "@/api";
 
 // ─── Integrations ─────────────────────────────────────────────────────────────
 
 export function Integrations() {
+  const [logs, setLogs] = useState<EmailLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
+
+  const loadLogs = async () => {
+    setLoadingLogs(true);
+    const d = await fetchEmailLogs();
+    setLogs(d.logs || []);
+    setLoadingLogs(false);
+  };
+
+  useEffect(() => { loadLogs(); }, []);
+
+  const integrationList = [
+    { name: "Mailgun", icon: "🚀", status: "connected", desc: "Email-доставка — активна", detail: "Письма отправляются через Mailgun API. Настрой домен в Mailgun → Sending → Domains." },
+    { name: "Bitrix24", icon: "🔗", status: "disconnected", desc: "CRM синхронизация" },
+    { name: "amoCRM", icon: "💼", status: "disconnected", desc: "Контакты и сделки" },
+    { name: "SendGrid", icon: "📤", status: "disconnected", desc: "Альтернативный SMTP" },
+    { name: "Telegram Bot", icon: "✈️", status: "disconnected", desc: "Уведомления в чат" },
+    { name: "Webhook", icon: "⚡", status: "disconnected", desc: "Кастомные события" },
+  ];
+
+  const fmtDate = (iso: string) => new Date(iso).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
   return (
     <div className="p-6 space-y-5">
       <div className="fade-in-up">
         <h1 className="text-2xl font-bold">Интеграции</h1>
         <p className="text-muted-foreground text-sm mt-0.5">CRM, почтовые сервисы, вебхуки</p>
       </div>
+
+      {/* Mailgun status banner */}
+      <div className="rounded-2xl p-4" style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.25)" }}>
+        <div className="flex items-center gap-3">
+          <div className="text-2xl">🚀</div>
+          <div className="flex-1">
+            <div className="font-semibold text-sm flex items-center gap-2">
+              Mailgun подключён
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">Реальная доставка email активна · {logs.length} писем отправлено</div>
+          </div>
+          <button
+            onClick={() => setShowLogs(!showLogs)}
+            className="text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5"
+            style={{ background: "rgba(74,222,128,0.15)", color: "#4ade80" }}>
+            <Icon name="Activity" size={12} />
+            {showLogs ? "Скрыть лог" : "Лог отправок"}
+          </button>
+        </div>
+      </div>
+
+      {/* Email logs */}
+      {showLogs && (
+        <div className="glass rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+            <div className="text-sm font-semibold">История отправок</div>
+            <button onClick={loadLogs} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <Icon name="RefreshCw" size={12} />Обновить
+            </button>
+          </div>
+          {loadingLogs ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground text-sm gap-2">
+              <Icon name="Loader2" size={15} className="animate-spin" />Загружаем...
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground text-sm">Писем пока не отправлено</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
+                  <th className="text-left px-5 py-3">Кому</th>
+                  <th className="text-left px-5 py-3 hidden md:table-cell">Тема</th>
+                  <th className="text-left px-5 py-3">Статус</th>
+                  <th className="text-left px-5 py-3 hidden lg:table-cell">Кампания</th>
+                  <th className="text-left px-5 py-3 hidden md:table-cell">Время</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((l) => (
+                  <tr key={l.id} className="border-t border-border hover:bg-white/3 transition-colors">
+                    <td className="px-5 py-3 font-mono-custom text-xs">{l.to}</td>
+                    <td className="px-5 py-3 text-muted-foreground hidden md:table-cell truncate max-w-xs">{l.subject}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${l.status === "sent" ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"}`}>
+                        {l.status === "sent" ? "Доставлено" : "Ошибка"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground text-xs hidden lg:table-cell">{l.campaign || "—"}</td>
+                    <td className="px-5 py-3 text-muted-foreground text-xs hidden md:table-cell">{fmtDate(l.sent_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {integrations.map((intg, i) => (
+        {integrationList.map((intg, i) => (
           <div key={i} className="glass rounded-2xl p-5 metric-card">
             <div className="flex items-start justify-between mb-3">
               <div className="text-3xl">{intg.icon}</div>
@@ -21,6 +114,7 @@ export function Integrations() {
             </div>
             <div className="font-semibold">{intg.name}</div>
             <div className="text-xs text-muted-foreground mt-1">{intg.desc}</div>
+            {intg.detail && <div className="text-xs mt-2 leading-relaxed" style={{ color: "#4ade80" }}>{intg.detail}</div>}
             <button
               className={`mt-4 w-full py-2 rounded-xl text-xs font-semibold transition-colors ${intg.status === "connected" ? "bg-white/5 hover:bg-white/8 text-muted-foreground" : "text-white"}`}
               style={intg.status !== "connected" ? { background: "linear-gradient(135deg, #a855f7, #22d3ee)" } : {}}>
