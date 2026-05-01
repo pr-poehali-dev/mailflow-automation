@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "GET stats без campaign_id — 400",
+      "method": "GET",
+      "path": "/?action=stats",
+      "expectedStatus": 400
+    }
+  ]
+}

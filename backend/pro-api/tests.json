@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "GET templates",
+      "method": "GET",
+      "path": "/?resource=templates",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET global_stats",
+      "method": "GET",
+      "path": "/?resource=global_stats",
+      "expectedStatus": 200
+    }
+  ]
+}
