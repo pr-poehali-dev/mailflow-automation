@@ -65,11 +65,14 @@ export const integrations = [
   { name: "Webhook", icon: "⚡", status: "disconnected", desc: "Кастомные события" },
 ];
 
-export const navItems: { id: Page; label: string; icon: string }[] = [
+export const navItems: { id: Page; label: string; icon: string; badge?: string }[] = [
   { id: "dashboard", label: "Дашборд", icon: "LayoutDashboard" },
   { id: "campaigns", label: "Кампании", icon: "Mail" },
   { id: "contacts", label: "Контакты", icon: "Users" },
-  { id: "editor", label: "Редактор писем", icon: "PenSquare" },
+  { id: "editor", label: "Редактор писем", icon: "PenSquare", badge: "AI" },
+  { id: "automation", label: "Автоматизации", icon: "Workflow", badge: "PRO" },
+  { id: "omnichannel", label: "Omnichannel", icon: "Network", badge: "NEW" },
+  { id: "predict", label: "Predictive AI", icon: "Sparkles", badge: "AI" },
   { id: "analytics", label: "Аналитика", icon: "BarChart2" },
   { id: "integrations", label: "Интеграции", icon: "Puzzle" },
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },

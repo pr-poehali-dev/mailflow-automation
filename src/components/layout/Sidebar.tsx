@@ -55,7 +55,17 @@ export default function Sidebar({ page, setPage, collapsed, setCollapsed }: Side
               title={collapsed ? item.label : undefined}
             >
               <Icon name={item.icon} size={17} className="flex-shrink-0" />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {!collapsed && (
+                <>
+                  <span className="truncate flex-1 text-left">{item.label}</span>
+                  {item.badge && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md text-white tracking-wider"
+                      style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
             </button>
           );
         })}

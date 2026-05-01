@@ -71,10 +71,10 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
           <h2 className="font-semibold mb-4">Быстрые действия</h2>
           <div className="space-y-2">
             {[
-              { icon: "Mail", label: "Новая кампания", color: "#8b5cf6", page: "campaigns" as Page },
-              { icon: "UserPlus", label: "Добавить контакт", color: "#06b6d4", page: "contacts" as Page },
-              { icon: "LayoutTemplate", label: "Выбрать шаблон", color: "#ec4899", page: "templates" as Page },
-              { icon: "BarChart2", label: "Посмотреть отчёт", color: "#4ade80", page: "analytics" as Page },
+              { icon: "Sparkles", label: "AI: написать письмо", color: "#8b5cf6", page: "editor" as Page },
+              { icon: "Workflow", label: "Автоматизации PRO", color: "#f59e0b", page: "automation" as Page },
+              { icon: "Network", label: "Omnichannel каналы", color: "#06b6d4", page: "omnichannel" as Page },
+              { icon: "TrendingUp", label: "Predictive AI", color: "#ec4899", page: "predict" as Page },
             ].map((a, i) => (
               <button key={i} onClick={() => setPage(a.page)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-white/5 transition-colors text-left">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${a.color}22` }}>

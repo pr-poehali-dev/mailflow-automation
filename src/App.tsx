@@ -12,6 +12,9 @@ import {
   SettingsPage,
 } from "@/components/pages/Pages";
 import { ApiPage } from "@/components/pages/ApiPage";
+import AutomationPage from "@/components/pages/AutomationPage";
+import OmnichannelPage from "@/components/pages/OmnichannelPage";
+import PredictPage from "@/components/pages/PredictPage";
 
 export default function App() {
   const [page, setPage] = useState<Page>("dashboard");
@@ -22,6 +25,9 @@ export default function App() {
     campaigns: <Campaigns />,
     contacts: <Contacts />,
     editor: <EmailEditor />,
+    automation: <AutomationPage />,
+    omnichannel: <OmnichannelPage />,
+    predict: <PredictPage />,
     analytics: <Analytics />,
     integrations: <Integrations />,
     templates: <Templates setPage={setPage} />,
