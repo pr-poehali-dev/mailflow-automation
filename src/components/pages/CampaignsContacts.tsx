@@ -69,7 +69,7 @@ export function Campaigns() {
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Plus" size={15} />
           Создать кампанию
         </button>
@@ -104,7 +104,7 @@ export function Campaigns() {
               onClick={handleCreate}
               disabled={saving || !newName.trim()}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               {saving ? "Создаём..." : "Создать черновик"}
             </button>
             <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-xl text-sm glass hover:bg-white/8 transition-colors">
@@ -141,7 +141,7 @@ export function Campaigns() {
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
             <Icon name="Mail" size={32} className="opacity-30" />
             <div className="text-sm">Кампаний пока нет</div>
-            <button onClick={() => setShowForm(true)} className="text-xs px-3 py-1.5 rounded-xl font-medium" style={{ background: "rgba(168,85,247,0.2)", color: "#a855f7" }}>
+            <button onClick={() => setShowForm(true)} className="text-xs px-3 py-1.5 rounded-xl font-medium" style={{ background: "rgba(139,92,246,0.2)", color: "#8b5cf6" }}>
               Создать первую
             </button>
           </div>
@@ -222,11 +222,11 @@ export function Contacts() {
   const segmentCounts = (seg: string) => contacts.filter((c) => seg === "Все" ? true : c.segment === seg).length;
 
   const segments = [
-    { label: "Все", color: "#a855f7" },
+    { label: "Все", color: "#8b5cf6" },
     { label: "VIP", color: "#fb923c" },
     { label: "Активный", color: "#4ade80" },
     { label: "Спящий", color: "#94a3b8" },
-    { label: "Новый", color: "#22d3ee" },
+    { label: "Новый", color: "#06b6d4" },
   ];
 
   const [activeSegment, setActiveSegment] = useState("Все");
@@ -291,7 +291,7 @@ export function Contacts() {
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+            style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
             <Icon name="UserPlus" size={15} />
             Добавить
           </button>
@@ -331,7 +331,7 @@ export function Contacts() {
           <div className="flex gap-2">
             <button onClick={handleCreate} disabled={saving || !newEmail.trim()}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               {saving ? "Добавляем..." : "Добавить"}
             </button>
             <button onClick={() => { setShowForm(false); setError(""); }} className="px-4 py-2 rounded-xl text-sm glass hover:bg-white/8 transition-colors">
@@ -363,12 +363,12 @@ export function Contacts() {
 
       <div className="rounded-2xl p-4" style={{ background: "rgba(34,211,238,0.07)", border: "1px solid rgba(34,211,238,0.2)" }}>
         <div className="flex items-center gap-3">
-          <Icon name="Brain" size={18} style={{ color: "#22d3ee" }} />
+          <Icon name="Brain" size={18} style={{ color: "#06b6d4" }} />
           <div>
             <span className="font-medium text-sm">Поведенческая сегментация</span>
             <span className="text-xs text-muted-foreground ml-2">Автоматически делит аудиторию по активности, кликам и покупкам</span>
           </div>
-          <button className="ml-auto text-xs px-3 py-1.5 rounded-xl font-medium" style={{ background: "rgba(34,211,238,0.15)", color: "#22d3ee" }}>
+          <button className="ml-auto text-xs px-3 py-1.5 rounded-xl font-medium" style={{ background: "rgba(34,211,238,0.15)", color: "#06b6d4" }}>
             Настроить
           </button>
         </div>
@@ -384,7 +384,7 @@ export function Contacts() {
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
             <Icon name="Users" size={32} className="opacity-30" />
             <div className="text-sm">Контактов не найдено</div>
-            <button onClick={() => setShowForm(true)} className="text-xs px-3 py-1.5 rounded-xl font-medium" style={{ background: "rgba(168,85,247,0.2)", color: "#a855f7" }}>
+            <button onClick={() => setShowForm(true)} className="text-xs px-3 py-1.5 rounded-xl font-medium" style={{ background: "rgba(139,92,246,0.2)", color: "#8b5cf6" }}>
               Добавить контакт
             </button>
           </div>
@@ -406,7 +406,7 @@ export function Contacts() {
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.3), rgba(34,211,238,0.3))" }}>
+                        style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(34,211,238,0.3))" }}>
                         {c.name ? c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : c.email[0].toUpperCase()}
                       </div>
                       <span className="font-medium">{c.name || "—"}</span>
@@ -414,7 +414,7 @@ export function Contacts() {
                   </td>
                   <td className="px-5 py-3.5 text-muted-foreground font-mono-custom text-xs hidden md:table-cell">{c.email}</td>
                   <td className="px-5 py-3.5">
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7", border: "1px solid rgba(168,85,247,0.3)" }}>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.15)", color: "#8b5cf6", border: "1px solid rgba(139,92,246,0.3)" }}>
                       {c.segment}
                     </span>
                   </td>

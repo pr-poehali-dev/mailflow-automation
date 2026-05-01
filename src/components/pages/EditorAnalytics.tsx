@@ -108,7 +108,7 @@ export function EmailEditor() {
           <button onClick={() => { setShowBlast(!showBlast); setShowTest(false); }}
             disabled={!selectedId}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+            style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
             <Icon name="Rocket" size={15} />
             Запустить рассылку
           </button>
@@ -135,7 +135,7 @@ export function EmailEditor() {
       {showTest && (
         <div className="glass rounded-2xl p-4 space-y-3 fade-in-up">
           <div className="text-sm font-semibold flex items-center gap-2">
-            <Icon name="Send" size={14} style={{ color: "#22d3ee" }} />
+            <Icon name="Send" size={14} style={{ color: "#06b6d4" }} />
             Тест-отправка — письмо придёт на твой email
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -153,7 +153,7 @@ export function EmailEditor() {
           <div className="flex gap-2 items-center flex-wrap">
             <button onClick={handleTest} disabled={testSending || !testTo.trim()}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-2"
-              style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               {testSending ? <><Icon name="Loader2" size={14} className="animate-spin" />Отправляем...</> : <><Icon name="Send" size={14} />Отправить тест</>}
             </button>
             {testResult && (
@@ -168,9 +168,9 @@ export function EmailEditor() {
 
       {/* Blast panel */}
       {showBlast && (
-        <div className="rounded-2xl p-4 space-y-3 fade-in-up" style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.25)" }}>
+        <div className="rounded-2xl p-4 space-y-3 fade-in-up" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)" }}>
           <div className="text-sm font-semibold flex items-center gap-2">
-            <Icon name="Rocket" size={14} style={{ color: "#a855f7" }} />
+            <Icon name="Rocket" size={14} style={{ color: "#8b5cf6" }} />
             Массовая рассылка по всем активным контактам
           </div>
           <p className="text-xs text-muted-foreground">{"Письмо будет отправлено каждому активному контакту. Переменные {{first_name}} и другие заменятся автоматически."}</p>
@@ -184,7 +184,7 @@ export function EmailEditor() {
           ) : (
             <button onClick={handleBlast} disabled={blasting || !selectedId}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-2"
-              style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               {blasting ? <><Icon name="Loader2" size={14} className="animate-spin" />Отправляем...</> : <><Icon name="Rocket" size={14} />Запустить</>}
             </button>
           )}
@@ -213,17 +213,18 @@ export function EmailEditor() {
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border text-xs text-muted-foreground">
               <Icon name="Mail" size={13} />
               Предпросмотр письма
-              <span className="ml-auto text-purple-400">{fromName || "MAIL-KA"}</span>
+              <span className="ml-auto" style={{ color: "#8b5cf6" }}>{fromName || "MAIL-KA"}</span>
             </div>
-            <div className="p-4">
-              <div className="max-w-lg mx-auto rounded-xl overflow-hidden" style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <div className="p-6 text-center" style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+            <div className="p-4" style={{ background: "linear-gradient(180deg, rgba(139,92,246,0.04), transparent)" }}>
+              <div className="max-w-lg mx-auto rounded-xl overflow-hidden shadow-lg" style={{ background: "#ffffff", border: "1px solid rgba(139,92,246,0.15)" }}>
+                <div className="p-6 text-center" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
                   <div className="text-white font-bold text-lg">{fromName || "MAIL-KA"}</div>
-                  <div className="text-white/70 text-sm mt-1">{subject || "Тема письма"}</div>
+                  <div className="text-white/80 text-sm mt-1">{subject || "Тема письма"}</div>
                 </div>
                 <div className="p-6">
                   <textarea
-                    className="w-full bg-transparent text-sm text-gray-300 outline-none resize-none leading-relaxed"
+                    className="w-full bg-transparent text-sm outline-none resize-none leading-relaxed"
+                    style={{ color: "#1f2937" }}
                     rows={10}
                     value={bodyText}
                     onChange={(e) => setBodyText(e.target.value)}
@@ -232,11 +233,11 @@ export function EmailEditor() {
                 </div>
                 <div className="px-6 pb-6 text-center">
                   <div className="inline-block px-6 py-3 rounded-xl font-semibold text-sm text-white cursor-pointer"
-                    style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+                    style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
                     Перейти к предложению →
                   </div>
                 </div>
-                <div className="px-6 py-4 text-center text-xs text-gray-500 border-t border-white/10">
+                <div className="px-6 py-4 text-center text-xs border-t" style={{ color: "#94a3b8", borderColor: "rgba(0,0,0,0.06)" }}>
                   Отписаться · Настройки · {fromName || "MAIL-KA"}
                 </div>
               </div>
@@ -247,14 +248,14 @@ export function EmailEditor() {
         <div className="space-y-4">
           <div className="glass rounded-2xl p-4">
             <div className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Icon name="Variable" size={15} style={{ color: "#a855f7" }} />
+              <Icon name="Variable" size={15} style={{ color: "#8b5cf6" }} />
               Переменные
             </div>
             <div className="space-y-1.5">
               {variables.map((v) => (
                 <button key={v}
                   className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-mono-custom hover:bg-white/8 transition-colors"
-                  style={{ color: "#22d3ee" }}
+                  style={{ color: "#06b6d4" }}
                   onClick={() => setBodyText((t) => t + " " + v)}>
                   {v}
                 </button>
@@ -315,8 +316,8 @@ export function Analytics() {
 
   const delivStats = [
     { label: "Доставлено", value: "98.4%", color: "#4ade80", icon: "CheckCircle" },
-    { label: "Открыто", value: "27.4%", color: "#22d3ee", icon: "MailOpen" },
-    { label: "Кликнуто", value: "8.1%", color: "#a855f7", icon: "MousePointer" },
+    { label: "Открыто", value: "27.4%", color: "#06b6d4", icon: "MailOpen" },
+    { label: "Кликнуто", value: "8.1%", color: "#8b5cf6", icon: "MousePointer" },
     { label: "Отписок", value: "0.3%", color: "#fb923c", icon: "UserMinus" },
   ];
   const maxBar = Math.max(...chartData.map((d) => d.opens));
@@ -351,8 +352,8 @@ export function Analytics() {
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold">Динамика за 7 дней</h2>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#a855f7" }} />Открытия</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#22d3ee" }} />Клики</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#8b5cf6" }} />Открытия</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#06b6d4" }} />Клики</span>
             </div>
           </div>
           <div className="flex items-end gap-3 h-40">
@@ -360,9 +361,9 @@ export function Analytics() {
               <div key={i} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex gap-1 items-end" style={{ height: 120 }}>
                   <div className="flex-1 rounded-t-md chart-bar"
-                    style={{ height: `${(d.opens / maxBar) * 100}%`, background: "linear-gradient(180deg, #a855f7, rgba(168,85,247,0.3))", animationDelay: `${i * 0.08}s` }} />
+                    style={{ height: `${(d.opens / maxBar) * 100}%`, background: "linear-gradient(180deg, #8b5cf6, rgba(139,92,246,0.3))", animationDelay: `${i * 0.08}s` }} />
                   <div className="flex-1 rounded-t-md chart-bar"
-                    style={{ height: `${(d.clicks / maxBar) * 100}%`, background: "linear-gradient(180deg, #22d3ee, rgba(34,211,238,0.3))", animationDelay: `${i * 0.08 + 0.04}s` }} />
+                    style={{ height: `${(d.clicks / maxBar) * 100}%`, background: "linear-gradient(180deg, #06b6d4, rgba(6,182,212,0.3))", animationDelay: `${i * 0.08 + 0.04}s` }} />
                 </div>
                 <span className="text-xs text-muted-foreground">{d.day}</span>
               </div>

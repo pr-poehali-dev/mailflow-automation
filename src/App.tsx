@@ -39,10 +39,10 @@ export default function App() {
       />
 
       <main className="flex-1 overflow-y-auto relative" key={page}>
-        <div className="pointer-events-none fixed top-0 left-1/3 w-96 h-96 rounded-full opacity-10 blur-3xl"
-          style={{ background: "radial-gradient(circle, #a855f7, transparent)" }} />
-        <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full opacity-8 blur-3xl"
-          style={{ background: "radial-gradient(circle, #22d3ee, transparent)" }} />
+        <div className="pointer-events-none fixed top-0 left-1/3 w-96 h-96 rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.15), transparent)" }} />
+        <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full opacity-25 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent)" }} />
         <div className="relative z-10">
           {pageMap[page]}
         </div>

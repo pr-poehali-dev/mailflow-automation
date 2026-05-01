@@ -75,12 +75,12 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(8px)" }}>
       <div className="glass rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <div className="font-bold flex items-center gap-2">
-              <Icon name="Mail" size={18} style={{ color: "#a855f7" }} />
+              <Icon name="Mail" size={18} style={{ color: "#8b5cf6" }} />
               Настройка SMTP-сервера
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">Шаг {step} из 3</div>
@@ -94,7 +94,7 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
         <div className="flex gap-1.5 px-6 pt-4">
           {[1, 2, 3].map((s) => (
             <div key={s} className="h-1 flex-1 rounded-full transition-all"
-              style={{ background: s <= step ? "linear-gradient(90deg, #a855f7, #22d3ee)" : "rgba(255,255,255,0.08)" }} />
+              style={{ background: s <= step ? "linear-gradient(90deg, #8b5cf6, #06b6d4)" : "rgba(255,255,255,0.08)" }} />
           ))}
         </div>
 
@@ -110,7 +110,7 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
                 <button key={p.key}
                   onClick={() => setSelectedPreset(p.key)}
                   className={`text-left p-3 rounded-xl transition-all border ${selectedPreset === p.key ? "border-purple-500" : "border-border hover:border-white/20"}`}
-                  style={selectedPreset === p.key ? { background: "rgba(168,85,247,0.08)" } : { background: "rgba(255,255,255,0.02)" }}>
+                  style={selectedPreset === p.key ? { background: "rgba(139,92,246,0.08)" } : { background: "rgba(255,255,255,0.02)" }}>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">{presetIcons[p.key] || "📧"}</span>
                     <span className="font-semibold text-sm">{p.label}</span>
@@ -120,15 +120,15 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
               ))}
             </div>
             {currentPreset?.hint && (
-              <div className="rounded-xl p-3 text-xs flex gap-2" style={{ background: "rgba(34,211,238,0.07)", border: "1px solid rgba(34,211,238,0.2)" }}>
-                <Icon name="Lightbulb" size={14} style={{ color: "#22d3ee", flexShrink: 0, marginTop: 1 }} />
+              <div className="rounded-xl p-3 text-xs flex gap-2" style={{ background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.2)" }}>
+                <Icon name="Lightbulb" size={14} style={{ color: "#06b6d4", flexShrink: 0, marginTop: 1 }} />
                 <span className="text-muted-foreground leading-relaxed">{currentPreset.hint}</span>
               </div>
             )}
             <div className="flex justify-end pt-2">
               <button onClick={() => setStep(2)}
                 className="px-5 py-2 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+                style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
                 Далее →
               </button>
             </div>
@@ -212,7 +212,7 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
               </button>
               <button onClick={handleSave} disabled={saving || !username || !password}
                 className="px-5 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-2"
-                style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+                style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
                 {saving ? <><Icon name="Loader2" size={14} className="animate-spin" />Сохраняем...</> : <>Сохранить и проверить →</>}
               </button>
             </div>
@@ -225,7 +225,7 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
             <div className="text-center py-6">
               {testing ? (
                 <>
-                  <Icon name="Loader2" size={42} className="animate-spin mx-auto mb-3" style={{ color: "#a855f7" }} />
+                  <Icon name="Loader2" size={42} className="animate-spin mx-auto mb-3" style={{ color: "#8b5cf6" }} />
                   <div className="font-semibold">Проверяем подключение к {smtpHost}...</div>
                   <div className="text-xs text-muted-foreground mt-1">Подключаемся к SMTP-серверу и логинимся</div>
                 </>
@@ -252,7 +252,7 @@ function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () => void; 
               {testResult?.ok ? (
                 <button onClick={onClose}
                   className="px-5 py-2 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+                  style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
                   Готово
                 </button>
               ) : (
@@ -319,8 +319,8 @@ export function Integrations() {
           <p className="text-muted-foreground text-sm mt-0.5">Собственный SMTP-движок · CRM · Webhooks</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
-          style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(34,211,238,0.1))", border: "1px solid rgba(168,85,247,0.3)" }}>
-          <Icon name="Server" size={13} style={{ color: "#a855f7" }} />
+          style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.1))", border: "1px solid rgba(139,92,246,0.3)" }}>
+          <Icon name="Server" size={13} style={{ color: "#8b5cf6" }} />
           <span>Свой движок · без сторонних сервисов</span>
         </div>
       </div>
@@ -329,7 +329,7 @@ export function Integrations() {
       <div className="glass rounded-2xl overflow-hidden">
         <div className="p-5 flex items-start gap-4 flex-wrap">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
-            style={{ background: isConnected ? "linear-gradient(135deg, rgba(74,222,128,0.2), rgba(34,211,238,0.1))" : "rgba(255,255,255,0.05)" }}>
+            style={{ background: isConnected ? "linear-gradient(135deg, rgba(74,222,128,0.2), rgba(6,182,212,0.1))" : "rgba(255,255,255,0.05)" }}>
             {isConnected ? "✅" : "⚙️"}
           </div>
           <div className="flex-1 min-w-0">
@@ -363,7 +363,7 @@ export function Integrations() {
                 <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                   <div className="h-full rounded-full transition-all"
                     style={{ width: `${usagePercent}%`,
-                             background: usagePercent > 80 ? "#fb923c" : "linear-gradient(90deg, #a855f7, #22d3ee)" }} />
+                             background: usagePercent > 80 ? "#fb923c" : "linear-gradient(90deg, #8b5cf6, #06b6d4)" }} />
                 </div>
               </div>
             )}
@@ -376,7 +376,7 @@ export function Integrations() {
             </button>
             <button onClick={() => setShowWizard(true)}
               className="text-xs px-4 py-2 rounded-xl font-semibold text-white flex items-center gap-1.5"
-              style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               <Icon name={isConnected ? "Settings" : "Plus"} size={13} />
               {isConnected ? "Настроить" : "Подключить SMTP"}
             </button>
@@ -393,7 +393,7 @@ export function Integrations() {
             { icon: "Activity", label: "Полный лог отправок" },
           ].map((f, i) => (
             <span key={i} className="flex items-center gap-1.5 text-muted-foreground">
-              <Icon name={f.icon} size={11} style={{ color: "#a855f7" }} />
+              <Icon name={f.icon} size={11} style={{ color: "#8b5cf6" }} />
               {f.label}
             </span>
           ))}
@@ -489,7 +489,7 @@ export function Templates({ setPage }: { setPage: (p: Page) => void }) {
         <button
           onClick={() => setPage("editor")}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Plus" size={15} />
           Создать шаблон
         </button>
@@ -507,7 +507,7 @@ export function Templates({ setPage }: { setPage: (p: Page) => void }) {
         {mockTemplates.map((t) => (
           <div key={t.id} className="glass rounded-2xl overflow-hidden metric-card group cursor-pointer">
             <div className="h-32 flex items-center justify-center text-5xl relative"
-              style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.1), rgba(34,211,238,0.05))" }}>
+              style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.05))" }}>
               {t.preview}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <button onClick={() => setPage("editor")} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-purple-500 hover:bg-purple-400 transition-colors">
@@ -521,7 +521,7 @@ export function Templates({ setPage }: { setPage: (p: Page) => void }) {
             <div className="p-4">
               <div className="font-semibold text-sm">{t.name}</div>
               <div className="flex items-center justify-between mt-1.5">
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7" }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.15)", color: "#8b5cf6" }}>
                   {t.category}
                 </span>
                 <span className="text-xs text-muted-foreground">{t.uses} использований</span>
@@ -547,12 +547,12 @@ export function SettingsPage() {
 
       <div className="glass rounded-2xl p-5 space-y-4">
         <h2 className="font-semibold flex items-center gap-2">
-          <Icon name="User" size={15} style={{ color: "#a855f7" }} />
+          <Icon name="User" size={15} style={{ color: "#8b5cf6" }} />
           Профиль
         </h2>
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+            style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
             А
           </div>
           <div>
@@ -598,7 +598,7 @@ export function SettingsPage() {
 
       <div className="glass rounded-2xl p-5 space-y-4">
         <h2 className="font-semibold flex items-center gap-2">
-          <Icon name="Code2" size={15} style={{ color: "#22d3ee" }} />
+          <Icon name="Code2" size={15} style={{ color: "#06b6d4" }} />
           API-ключи
         </h2>
         <div className="space-y-2">
@@ -618,7 +618,7 @@ export function SettingsPage() {
           ))}
         </div>
         <button className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl text-white"
-          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Plus" size={14} />
           Создать новый ключ
         </button>

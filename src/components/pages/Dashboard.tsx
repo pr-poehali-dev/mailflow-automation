@@ -36,7 +36,7 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
         <button
           onClick={() => setPage("campaigns")}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Plus" size={15} />
           Новая кампания
         </button>
@@ -71,8 +71,8 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
           <h2 className="font-semibold mb-4">Быстрые действия</h2>
           <div className="space-y-2">
             {[
-              { icon: "Mail", label: "Новая кампания", color: "#a855f7", page: "campaigns" as Page },
-              { icon: "UserPlus", label: "Добавить контакт", color: "#22d3ee", page: "contacts" as Page },
+              { icon: "Mail", label: "Новая кампания", color: "#8b5cf6", page: "campaigns" as Page },
+              { icon: "UserPlus", label: "Добавить контакт", color: "#06b6d4", page: "contacts" as Page },
               { icon: "LayoutTemplate", label: "Выбрать шаблон", color: "#ec4899", page: "templates" as Page },
               { icon: "BarChart2", label: "Посмотреть отчёт", color: "#4ade80", page: "analytics" as Page },
             ].map((a, i) => (

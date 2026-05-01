@@ -81,8 +81,8 @@ const ENDPOINTS = [
 
 const METHOD_COLOR: Record<string, string> = {
   GET: "#4ade80",
-  POST: "#a855f7",
-  PUT: "#22d3ee",
+  POST: "#8b5cf6",
+  PUT: "#06b6d4",
   DELETE: "#f87171",
 };
 
@@ -181,7 +181,7 @@ export function ApiPage() {
       {/* Base URL */}
       <div className="glass rounded-2xl p-4 flex items-center gap-3">
         <div className="text-xs text-muted-foreground flex-shrink-0">Base URL</div>
-        <code className="font-mono-custom text-xs flex-1 truncate" style={{ color: "#22d3ee" }}>{BASE_URL}</code>
+        <code className="font-mono-custom text-xs flex-1 truncate" style={{ color: "#06b6d4" }}>{BASE_URL}</code>
         <button onClick={() => handleCopy(BASE_URL, -1)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
           <Icon name={copiedId === -1 ? "Check" : "Copy"} size={14} />
         </button>
@@ -194,7 +194,7 @@ export function ApiPage() {
             key={t.id}
             onClick={() => { setTab(t.id); if (t.id === "log") loadEvents(); if (t.id === "triggers") loadTriggers(); }}
             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${tab === t.id ? "text-white" : "text-muted-foreground hover:text-foreground"}`}
-            style={tab === t.id ? { background: "linear-gradient(135deg, rgba(168,85,247,0.3), rgba(34,211,238,0.15))" } : {}}>
+            style={tab === t.id ? { background: "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(6,182,212,0.15))" } : {}}>
             <Icon name={t.icon} size={13} />
             {t.label}
           </button>
@@ -219,20 +219,20 @@ export function ApiPage() {
                 onClick={handleCreateKey}
                 disabled={loading || !newKeyName.trim()}
                 className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-2"
-                style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+                style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
                 <Icon name="Plus" size={14} />
                 {loading ? "..." : "Создать"}
               </button>
             </div>
 
             {createdKey && (
-              <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.3)" }}>
+              <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)" }}>
                 <div className="text-xs font-semibold text-yellow-400 flex items-center gap-1.5">
                   <Icon name="AlertTriangle" size={13} />
                   Сохрани ключ — он показывается только один раз!
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="font-mono-custom text-xs flex-1 break-all" style={{ color: "#a855f7" }}>{createdKey}</code>
+                  <code className="font-mono-custom text-xs flex-1 break-all" style={{ color: "#8b5cf6" }}>{createdKey}</code>
                   <button onClick={() => handleCopy(createdKey, 0)} className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors">
                     <Icon name={copiedId === 0 ? "Check" : "Copy"} size={14} />
                   </button>
@@ -296,7 +296,7 @@ export function ApiPage() {
         <div className="space-y-3">
           <div className="glass rounded-2xl p-4 text-sm space-y-2">
             <div className="font-semibold flex items-center gap-2">
-              <Icon name="Info" size={14} style={{ color: "#22d3ee" }} />
+              <Icon name="Info" size={14} style={{ color: "#06b6d4" }} />
               Аутентификация
             </div>
             <p className="text-muted-foreground text-xs leading-relaxed">
@@ -329,7 +329,7 @@ export function ApiPage() {
                   <p className="text-sm text-muted-foreground">{ep.desc}</p>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1.5">Пример запроса</div>
-                    <div className="relative rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.4)" }}>
+                    <div className="relative rounded-xl overflow-hidden" style={{ background: "#1e1b3a" }}>
                       <pre className="text-xs font-mono-custom p-4 overflow-x-auto" style={{ color: "#e2e8f0" }}>{ep.example}</pre>
                       <button
                         onClick={() => handleCopy(ep.example, i + 100)}
@@ -340,7 +340,7 @@ export function ApiPage() {
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1.5">Пример ответа</div>
-                    <div className="rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.4)" }}>
+                    <div className="rounded-xl overflow-hidden" style={{ background: "#1e1b3a" }}>
                       <pre className="text-xs font-mono-custom p-4 overflow-x-auto" style={{ color: "#4ade80" }}>{ep.response}</pre>
                     </div>
                   </div>
@@ -373,7 +373,7 @@ export function ApiPage() {
                   <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${e.status === "ok" ? "bg-green-400" : "bg-red-400"}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono-custom text-xs font-semibold" style={{ color: "#a855f7" }}>{e.event_type}</span>
+                      <span className="font-mono-custom text-xs font-semibold" style={{ color: "#8b5cf6" }}>{e.event_type}</span>
                       {e.key_name && <span className="text-xs text-muted-foreground">· {e.key_name}</span>}
                       {e.error && <span className="text-xs text-red-400">{e.error}</span>}
                     </div>
@@ -394,7 +394,7 @@ export function ApiPage() {
       {/* ── Triggers ── */}
       {tab === "triggers" && (
         <div className="space-y-4">
-          <div className="rounded-2xl p-4" style={{ background: "rgba(168,85,247,0.07)", border: "1px solid rgba(168,85,247,0.2)" }}>
+          <div className="rounded-2xl p-4" style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.2)" }}>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Триггеры позволяют автоматически запускать кампании по событиям из внешних систем.
               Создай правило здесь, а затем отправляй события через <code className="font-mono-custom text-purple-400">POST ?resource=trigger {"{"}"event":"purchase"{"}"}</code>.
@@ -405,7 +405,7 @@ export function ApiPage() {
             <div className="glass rounded-2xl flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
               <Icon name="Zap" size={28} className="opacity-30" />
               <div className="text-sm">Триггеров пока нет</div>
-              <div className="text-xs">Создай триггер через API: <code className="font-mono-custom" style={{ color: "#a855f7" }}>POST ?resource=triggers</code></div>
+              <div className="text-xs">Создай триггер через API: <code className="font-mono-custom" style={{ color: "#8b5cf6" }}>POST ?resource=triggers</code></div>
             </div>
           ) : (
             <div className="glass rounded-2xl overflow-hidden">
@@ -422,7 +422,7 @@ export function ApiPage() {
                   {triggers.map((t) => (
                     <tr key={t.id} className="border-t border-border hover:bg-white/3 transition-colors">
                       <td className="px-5 py-3.5">
-                        <code className="font-mono-custom text-xs" style={{ color: "#a855f7" }}>{t.event_name}</code>
+                        <code className="font-mono-custom text-xs" style={{ color: "#8b5cf6" }}>{t.event_name}</code>
                       </td>
                       <td className="px-5 py-3.5 text-muted-foreground">{t.campaign_name || `#${t.campaign_id}`}</td>
                       <td className="px-5 py-3.5">

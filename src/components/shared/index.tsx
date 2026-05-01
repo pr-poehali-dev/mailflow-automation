@@ -29,7 +29,7 @@ export function MiniChart() {
               className="w-full rounded-sm chart-bar"
               style={{
                 height: `${(d.opens / maxVal) * 100}%`,
-                background: "linear-gradient(180deg, rgba(168,85,247,0.8) 0%, rgba(168,85,247,0.3) 100%)",
+                background: "linear-gradient(180deg, rgba(139,92,246,0.85) 0%, rgba(139,92,246,0.35) 100%)",
                 animationDelay: `${i * 0.08}s`,
               }}
             />

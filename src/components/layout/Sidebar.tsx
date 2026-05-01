@@ -14,13 +14,14 @@ export default function Sidebar({ page, setPage, collapsed, setCollapsed }: Side
       className="flex flex-col border-r border-border transition-all duration-300 flex-shrink-0 relative"
       style={{
         width: collapsed ? 60 : 220,
-        background: "linear-gradient(180deg, rgba(168,85,247,0.04) 0%, transparent 40%)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(248,247,255,0.7))",
+        backdropFilter: "blur(12px)",
       }}
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-border">
         <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Zap" size={15} className="text-white" />
         </div>
         {!collapsed && (
@@ -44,10 +45,13 @@ export default function Sidebar({ page, setPage, collapsed, setCollapsed }: Side
               onClick={() => setPage(item.id)}
               className={`nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                 active
-                  ? "active text-white font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  ? "active font-semibold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
-              style={active ? { background: "linear-gradient(135deg, rgba(168,85,247,0.25), rgba(34,211,238,0.1))" } : {}}
+              style={active ? {
+                background: "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(6,182,212,0.06))",
+                color: "#7c3aed",
+              } : {}}
               title={collapsed ? item.label : undefined}
             >
               <Icon name={item.icon} size={17} className="flex-shrink-0" />
@@ -60,7 +64,7 @@ export default function Sidebar({ page, setPage, collapsed, setCollapsed }: Side
       {/* User */}
       <div className={`border-t border-border p-3 flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
         <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 text-white"
-          style={{ background: "linear-gradient(135deg, #a855f7, #22d3ee)" }}>
+          style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           А
         </div>
         {!collapsed && (
