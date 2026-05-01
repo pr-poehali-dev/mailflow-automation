@@ -25,6 +25,7 @@ const PAGE_SECTIONS: Record<Page, Section> = {
   analytics:    { category: "Аналитика",    label: "Отчёты",             icon: "BarChart2" },
   integrations: { category: "Подключения",  label: "Интеграции",         icon: "Puzzle" },
   templates:    { category: "Маркетинг",    label: "Шаблоны писем",      icon: "LayoutTemplate" },
+  pricing:      { category: "Аккаунт",      label: "Тарифы и оплата",    icon: "Crown" },
   settings:     { category: "Аккаунт",      label: "Настройки",          icon: "Settings" },
   api:          { category: "Подключения",  label: "API для разработчиков", icon: "Code2" },
 };

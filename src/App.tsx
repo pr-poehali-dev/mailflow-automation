@@ -17,6 +17,7 @@ import { ApiPage } from "@/components/pages/ApiPage";
 import AutomationPage from "@/components/pages/AutomationPage";
 import OmnichannelPage from "@/components/pages/OmnichannelPage";
 import PredictPage from "@/components/pages/PredictPage";
+import PricingPage from "@/components/pages/PricingPage";
 
 export default function App() {
   const [page, setPage] = useState<Page>("dashboard");
@@ -33,6 +34,7 @@ export default function App() {
     analytics: <Analytics />,
     integrations: <Integrations />,
     templates: <Templates setPage={setPage} />,
+    pricing: <PricingPage />,
     settings: <SettingsPage />,
     api: <ApiPage />,
   };

@@ -9,6 +9,7 @@ export type Page =
   | "analytics"
   | "integrations"
   | "templates"
+  | "pricing"
   | "settings"
   | "api";
 
@@ -76,6 +77,7 @@ export const navItems: { id: Page; label: string; icon: string; badge?: string }
   { id: "analytics", label: "Аналитика", icon: "BarChart2" },
   { id: "integrations", label: "Интеграции", icon: "Puzzle" },
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },
+  { id: "pricing", label: "Тарифы", icon: "Crown", badge: "−30%" },
   { id: "api", label: "API", icon: "Code2" },
   { id: "settings", label: "Настройки", icon: "Settings" },
 ];
