@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Page } from "@/data/mockData";
 import Sidebar from "@/components/layout/Sidebar";
+import Seo from "@/components/Seo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import {
   Dashboard,
   Campaigns,
@@ -45,11 +47,15 @@ export default function App() {
       />
 
       <main className="flex-1 overflow-y-auto relative" key={page}>
+        <Seo page={page} />
         <div className="pointer-events-none fixed top-0 left-1/3 w-96 h-96 rounded-full opacity-30 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(139,92,246,0.15), transparent)" }} />
         <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full opacity-25 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent)" }} />
         <div className="relative z-10">
+          <div className="px-6 pt-4">
+            <Breadcrumbs page={page} setPage={setPage} />
+          </div>
           {pageMap[page]}
         </div>
       </main>
