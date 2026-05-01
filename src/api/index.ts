@@ -100,18 +100,62 @@ export interface EmailLog {
   campaign: string | null;
 }
 
-export interface UnisenderStatus {
+export interface SmtpStatus {
   provider: string;
   connected: boolean;
-  email?: string;
-  balance?: string;
-  currency?: string;
-  tariff?: string;
+  smtp_host?: string;
+  smtp_port?: number;
+  username?: string;
+  from_email?: string;
+  from_name?: string;
+  preset?: string;
+  daily_limit?: number;
+  today_sent?: number;
+  test_status?: string;
   error?: string;
 }
 
-export const fetchUnisenderStatus = async (): Promise<UnisenderStatus> => {
+export interface SmtpPreset {
+  key: string;
+  label: string;
+  host: string;
+  port: number;
+  use_ssl: boolean;
+  use_tls: boolean;
+  hint: string;
+}
+
+// Backward-compat (старое название):
+export type UnisenderStatus = SmtpStatus;
+
+export const fetchSmtpStatus = async (): Promise<SmtpStatus> => {
   const r = await fetch(`${SEND_EMAIL_URL}?action=status`);
+  return r.json();
+};
+
+export const fetchUnisenderStatus = fetchSmtpStatus;
+
+export const fetchSmtpPresets = async (): Promise<{ presets: SmtpPreset[] }> => {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=presets`);
+  return r.json();
+};
+
+export const saveSmtpConfig = async (data: {
+  preset?: string; smtp_host: string; smtp_port: number;
+  use_tls: boolean; use_ssl: boolean;
+  username: string; password: string;
+  from_email?: string; from_name?: string; daily_limit?: number;
+}): Promise<{ ok: boolean; id?: number; error?: string }> => {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+};
+
+export const testSmtpConnection = async (): Promise<{ ok: boolean; message?: string; error?: string }> => {
+  const r = await fetch(`${SEND_EMAIL_URL}?action=test_smtp`, { method: "POST" });
   return r.json();
 };
 
