@@ -11,6 +11,7 @@ import {
   Templates,
   SettingsPage,
 } from "@/components/pages/Pages";
+import { ApiPage } from "@/components/pages/ApiPage";
 
 export default function App() {
   const [page, setPage] = useState<Page>("dashboard");
@@ -25,6 +26,7 @@ export default function App() {
     integrations: <Integrations />,
     templates: <Templates setPage={setPage} />,
     settings: <SettingsPage />,
+    api: <ApiPage />,
   };
 
   return (

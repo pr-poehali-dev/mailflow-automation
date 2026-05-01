@@ -6,7 +6,8 @@ export type Page =
   | "analytics"
   | "integrations"
   | "templates"
-  | "settings";
+  | "settings"
+  | "api";
 
 export const mockStats = [
   { label: "Контактов", value: "48 291", delta: "+12%", icon: "Users", color: "var(--neon-purple)" },
@@ -69,5 +70,6 @@ export const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "analytics", label: "Аналитика", icon: "BarChart2" },
   { id: "integrations", label: "Интеграции", icon: "Puzzle" },
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },
+  { id: "api", label: "API", icon: "Code2" },
   { id: "settings", label: "Настройки", icon: "Settings" },
 ];
