@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
+import PaymentModal from "./PaymentModal";
 
 interface Plan {
   id: string;
@@ -133,6 +134,7 @@ const FAQ = [
 export function PricingPage() {
   const [yearly, setYearly] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [paymentPlan, setPaymentPlan] = useState<Plan | null>(null);
 
   const calcPrice = (monthly: number) => {
     if (!yearly) return monthly;
@@ -246,6 +248,7 @@ export function PricingPage() {
             </div>
 
             <button
+              onClick={() => setPaymentPlan(plan)}
               className={`w-full py-3 rounded-xl text-sm font-semibold transition-transform hover:scale-[1.02] ${
                 plan.highlight ? "text-white" : "glass hover:bg-white/8"
               }`}
@@ -344,7 +347,9 @@ export function PricingPage() {
           <p className="text-sm text-muted-foreground mb-5">
             Начните с 7-дневного бесплатного периода тарифа «Бизнес» — все функции платформы без ограничений
           </p>
-          <button className="px-6 py-3 rounded-xl text-sm font-bold text-white inline-flex items-center gap-2 hover:scale-105 transition-transform"
+          <button
+            onClick={() => setPaymentPlan(PLANS[1])}
+            className="px-6 py-3 rounded-xl text-sm font-bold text-white inline-flex items-center gap-2 hover:scale-105 transition-transform"
             style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
             <Icon name="Rocket" size={15} />
             Попробовать бесплатно
@@ -354,6 +359,18 @@ export function PricingPage() {
           </div>
         </div>
       </div>
+
+      {paymentPlan && (
+        <PaymentModal
+          open={!!paymentPlan}
+          onClose={() => setPaymentPlan(null)}
+          planId={paymentPlan.id}
+          planName={paymentPlan.name}
+          planColor={paymentPlan.color}
+          amount={calcPrice(paymentPlan.monthly)}
+          yearly={yearly}
+        />
+      )}
     </div>
   );
 }
