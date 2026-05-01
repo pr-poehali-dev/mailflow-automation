@@ -1,5 +1,5 @@
 """
-AI-копирайтер MAIL-KA на базе OpenAI.
+AI-копирайтер MAIL-KA на базе polza.ai (OpenAI-совместимый API, оплата в рублях, без VPN).
 
 Эндпоинты:
   POST ?action=generate     — сгенерировать письмо по brief'у
@@ -20,8 +20,8 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type",
 }
 
-OPENAI_URL = "https://api.openai.com/v1/chat/completions"
-MODEL = "gpt-4o-mini"
+POLZA_URL = "https://api.polza.ai/api/v1/chat/completions"
+MODEL = "openai/gpt-4o-mini"
 
 
 def resp(status: int, body: dict) -> dict:
@@ -29,9 +29,9 @@ def resp(status: int, body: dict) -> dict:
 
 
 def call_openai(messages: list, temperature: float = 0.8, json_mode: bool = False) -> dict:
-    api_key = os.environ.get("OPENAI_API_KEY", "")
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
-        return {"ok": False, "error": "OPENAI_API_KEY не настроен. Добавь его в Секреты."}
+        return {"ok": False, "error": "POLZA_AI_API_KEY не настроен. Добавь его в Секреты."}
 
     payload = {
         "model": MODEL,
@@ -42,7 +42,7 @@ def call_openai(messages: list, temperature: float = 0.8, json_mode: bool = Fals
         payload["response_format"] = {"type": "json_object"}
 
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(OPENAI_URL, data=data, method="POST")
+    req = urllib.request.Request(POLZA_URL, data=data, method="POST")
     req.add_header("Content-Type", "application/json")
     req.add_header("Authorization", f"Bearer {api_key}")
 
@@ -54,7 +54,7 @@ def call_openai(messages: list, temperature: float = 0.8, json_mode: bool = Fals
             return {"ok": True, "text": text, "tokens": usage.get("total_tokens", 0)}
     except urllib.error.HTTPError as e:
         body_err = e.read().decode()
-        return {"ok": False, "error": f"OpenAI HTTP {e.code}: {body_err[:300]}"}
+        return {"ok": False, "error": f"polza.ai HTTP {e.code}: {body_err[:300]}"}
     except Exception as ex:
         return {"ok": False, "error": str(ex)[:300]}
 
