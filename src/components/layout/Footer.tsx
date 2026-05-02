@@ -16,7 +16,7 @@ export function Footer({ setPage }: Props) {
 
       {/* Главная строка */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="w-6 h-6 rounded-md flex items-center justify-center"
             style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
             <Icon name="Mail" size={11} className="text-white" />
@@ -26,6 +26,21 @@ export function Footer({ setPage }: Props) {
           <span className="font-semibold text-foreground">ООО «МАТ-Лабс»</span>
         </div>
         <div className="text-[10px]">© {year} ООО «МАТ-Лабс». Все права защищены.</div>
+      </div>
+
+      {/* Ключевая плашка: роль платформы */}
+      <div className="rounded-xl p-3 flex items-start gap-2"
+        style={{ background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.22)" }}>
+        <Icon name="Info" size={12} style={{ color: "#06b6d4", marginTop: 1 }} className="flex-shrink-0" />
+        <div className="leading-relaxed text-[11px]">
+          MAIL-KA — это <span className="font-semibold text-foreground">программный инструмент</span> для отправки
+          собственных коммуникаций пользователя. ООО «МАТ-Лабс»{" "}
+          <span className="font-semibold text-foreground">не является рекламодателем, рекламораспространителем
+          или рекламопроизводителем</span> по смыслу ст. 3 Федерального закона № 38-ФЗ «О рекламе». Содержание,
+          адресаты и законность рассылок определяются исключительно пользователем сервиса, который выступает
+          самостоятельным рекламодателем и несёт полную ответственность за соблюдение 38-ФЗ, 152-ФЗ, 149-ФЗ и
+          иных применимых норм РФ.
+        </div>
       </div>
 
       {/* Юридические данные */}
@@ -74,6 +89,8 @@ export function Footer({ setPage }: Props) {
                 и № 149-ФЗ «Об информации». Рассылка по электронной почте, SMS и в мессенджеры допускается
                 только при наличии предварительного согласия адресата (ст. 18 38-ФЗ). В каждом письме обязательны:
                 идентификация рекламодателя, контактные данные и техническая возможность отписки в один клик.
+                ООО «МАТ-Лабс» предоставляет лишь программно-технические средства и не контролирует содержание
+                сообщений, отправляемых пользователями.
               </p>
             </div>
           </div>

@@ -216,6 +216,21 @@ export function EmailEditor() {
             Массовая рассылка по всем активным контактам
           </div>
           <p className="text-xs text-muted-foreground">{"Письмо будет отправлено каждому активному контакту. Переменные {{first_name}} и другие заменятся автоматически."}</p>
+
+          {/* Чеклист 38-ФЗ */}
+          <div className="rounded-xl p-3 space-y-1.5"
+            style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.25)" }}>
+            <div className="text-[11px] font-semibold flex items-center gap-1.5" style={{ color: "#f59e0b" }}>
+              <Icon name="Scale" size={12} />
+              Перед запуском проверьте соответствие 38-ФЗ «О рекламе»
+            </div>
+            <ul className="text-[10px] text-muted-foreground space-y-0.5 pl-1">
+              <li>· У вас есть подтверждённое согласие адресатов на получение рекламы (ст. 18 38-ФЗ)</li>
+              <li>· В письме указан рекламодатель и его контакты, есть ссылка на отписку в 1 клик</li>
+              <li>· Для рекламы — пометка «Реклама», ИНН и токен <span className="font-mono">erid</span> (ОРД)</li>
+              <li>· Вы как пользователь сервиса выступаете рекламодателем и несёте ответственность за рассылку</li>
+            </ul>
+          </div>
           {blastResult ? (
             <div className={`rounded-xl p-3 text-sm ${blastResult.ok ? "text-green-400" : "text-red-400"}`}
               style={{ background: blastResult.ok ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.1)" }}>
