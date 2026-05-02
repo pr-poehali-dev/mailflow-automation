@@ -30,6 +30,12 @@ export function EmailEditor() {
   const [fromName, setFromName] = useState("MAIL-KA");
   const [fromEmail, setFromEmail] = useState("");
 
+  // Маркировка рекламы по 38-ФЗ
+  const [isAdvertising, setIsAdvertising] = useState(false);
+  const [advertiserName, setAdvertiserName] = useState("");
+  const [advertiserInn, setAdvertiserInn] = useState("");
+  const [erid, setErid] = useState("");
+
   // Test send
   const [showTest, setShowTest] = useState(false);
   const [testTo, setTestTo] = useState("");
@@ -55,6 +61,10 @@ export function EmailEditor() {
         if (c.subject) setSubject(c.subject);
         if (c.preheader) setPreheader(c.preheader);
         if (c.body_text) setBodyText(c.body_text);
+        setIsAdvertising(!!c.is_advertising);
+        setAdvertiserName(c.advertiser_name || "");
+        setAdvertiserInn(c.advertiser_inn || "");
+        setErid(c.erid || "");
       }
     });
   }, []);
@@ -66,6 +76,10 @@ export function EmailEditor() {
     setSubject(c.subject || "");
     setPreheader(c.preheader || "");
     setBodyText(c.body_text || "");
+    setIsAdvertising(!!c.is_advertising);
+    setAdvertiserName(c.advertiser_name || "");
+    setAdvertiserInn(c.advertiser_inn || "");
+    setErid(c.erid || "");
     setTestResult(null);
     setBlastResult(null);
   };
@@ -73,7 +87,13 @@ export function EmailEditor() {
   const handleSave = async () => {
     if (!selectedId) return;
     setSaving(true);
-    await updateCampaign(selectedId, { subject, preheader, body_text: bodyText });
+    await updateCampaign(selectedId, {
+      subject, preheader, body_text: bodyText,
+      is_advertising: isAdvertising,
+      advertiser_name: advertiserName,
+      advertiser_inn: advertiserInn,
+      erid,
+    });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -92,7 +112,13 @@ export function EmailEditor() {
   const handleBlast = async () => {
     if (!selectedId) return;
     // Сначала сохраняем
-    await updateCampaign(selectedId, { subject, preheader, body_text: bodyText });
+    await updateCampaign(selectedId, {
+      subject, preheader, body_text: bodyText,
+      is_advertising: isAdvertising,
+      advertiser_name: advertiserName,
+      advertiser_inn: advertiserInn,
+      erid,
+    });
     setBlasting(true);
     setBlastResult(null);
     const res = await sendCampaignBlast({ campaign_id: selectedId });
@@ -266,6 +292,77 @@ export function EmailEditor() {
                   value={preheader} onChange={(e) => setPreheader(e.target.value)} />
               </div>
             </div>
+          </div>
+
+          {/* Маркировка рекламы — 38-ФЗ */}
+          <div className="rounded-2xl p-4 space-y-3 fade-in-up"
+            style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.25)" }}>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={isAdvertising}
+                onChange={(e) => setIsAdvertising(e.target.checked)}
+                className="mt-0.5 w-4 h-4 accent-amber-500" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold flex items-center gap-1.5">
+                  <Icon name="Scale" size={13} style={{ color: "#f59e0b" }} />
+                  Это рекламное письмо (38-ФЗ)
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
+                  Включите, если содержимое письма продвигает товары/услуги. В тему добавится <span className="font-mono">[Реклама]</span>,
+                  в начало и подвал каждого письма — блок «Реклама · Название · ИНН · erid».
+                </div>
+              </div>
+            </label>
+
+            {isAdvertising && (
+              <div className="space-y-3 pl-7 fade-in-up">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] text-muted-foreground font-medium mb-1 block">
+                      Наименование рекламодателя
+                    </label>
+                    <input value={advertiserName} onChange={(e) => setAdvertiserName(e.target.value)}
+                      placeholder='ООО "Ваша компания"'
+                      className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-amber-500 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-muted-foreground font-medium mb-1 block">
+                      ИНН рекламодателя *
+                    </label>
+                    <input value={advertiserInn} onChange={(e) => setAdvertiserInn(e.target.value.replace(/\D/g, "").slice(0, 12))}
+                      placeholder="7712345678"
+                      inputMode="numeric"
+                      className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-amber-500 transition-colors" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground font-medium mb-1 block flex items-center gap-1.5">
+                    Токен ОРД (erid)
+                    <span className="text-[9px] px-1.5 py-0.5 rounded font-bold"
+                      style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>обязательно для интернет-рекламы</span>
+                  </label>
+                  <input value={erid} onChange={(e) => setErid(e.target.value.trim())}
+                    placeholder="Pb3XmBtzt..."
+                    className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-amber-500 transition-colors" />
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    Токен получается у Оператора Рекламных Данных (Яндекс ОРД, ОРД-А, Первый ОРД и др.) перед запуском кампании.
+                    Сервис автоматически добавит его в письма, но отчётность в ЕРИР подаёт рекламодатель.
+                  </div>
+                </div>
+
+                {/* Превью маркировки */}
+                <div className="rounded-lg p-2.5 text-[11px]"
+                  style={{ background: "rgba(0,0,0,0.15)", border: "1px dashed rgba(245,158,11,0.4)" }}>
+                  <div className="text-[10px] text-muted-foreground mb-1">Так будет выглядеть пометка в письме:</div>
+                  <div className="font-mono text-amber-400">
+                    {["Реклама",
+                      advertiserName || null,
+                      advertiserInn ? `ИНН ${advertiserInn}` : null,
+                      erid ? `erid: ${erid}` : null,
+                    ].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Email preview */}

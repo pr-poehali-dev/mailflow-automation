@@ -49,11 +49,15 @@ export function Footer({ setPage }: Props) {
           <Icon name="Building2" size={10} />
           ООО «МАТ-Лабс»
         </span>
-        <span>ИНН: уточнить в карточке организации</span>
-        <span>ОГРН: уточнить в карточке организации</span>
+        <span className="font-mono">ИНН 6312223437</span>
         <span className="flex items-center gap-1">
           <Icon name="Mail" size={10} />
           <a href="mailto:hello@mail-ka.ru" className="hover:text-foreground transition-colors">hello@mail-ka.ru</a>
+        </span>
+        <span className="flex items-center gap-1">
+          <Icon name="MessageCircle" size={10} />
+          <a href="mailto:abuse@mail-ka.ru" className="hover:text-foreground transition-colors">abuse@mail-ka.ru</a>
+          <span className="text-muted-foreground/70">— жалобы на спам</span>
         </span>
       </div>
 

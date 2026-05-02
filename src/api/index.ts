@@ -24,6 +24,10 @@ export interface Campaign {
   click_rate: number;
   created_at: string | null;
   sent_at: string | null;
+  is_advertising?: boolean;
+  erid?: string;
+  advertiser_name?: string;
+  advertiser_inn?: string;
 }
 
 export interface CampaignsResponse {

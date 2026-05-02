@@ -223,11 +223,34 @@ def substitute_vars(text: str, contact: dict) -> str:
     return text
 
 
-def text_to_html(text: str, from_name: str) -> str:
+def build_ad_label(is_ad: bool, advertiser_name: str = "", advertiser_inn: str = "", erid: str = "") -> str:
+    """Собирает строку маркировки: 'Реклама · Название · ИНН 1234567890 · erid: xxxxxx'."""
+    if not is_ad:
+        return ""
+    parts = ["Реклама"]
+    if advertiser_name:
+        parts.append(advertiser_name)
+    if advertiser_inn:
+        parts.append(f"ИНН {advertiser_inn}")
+    if erid:
+        parts.append(f"erid: {erid}")
+    return " · ".join(parts)
+
+
+def text_to_html(text: str, from_name: str, ad_label: str = "") -> str:
     paragraphs = "".join(
         f"<p style='margin:0 0 16px;'>{line}</p>" if line.strip() else "<br>"
         for line in text.split("\n")
     )
+    ad_block_top = (
+        f"<div style='display:inline-block;background:rgba(245,158,11,0.18);color:#f59e0b;"
+        f"font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;margin-bottom:16px;'>"
+        f"{ad_label}</div>"
+    ) if ad_label else ""
+    ad_block_bottom = (
+        f"<p style='margin:8px 0 0;font-size:11px;color:#64748b;text-align:center;'>"
+        f"{ad_label}</p>"
+    ) if ad_label else ""
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
@@ -238,11 +261,14 @@ def text_to_html(text: str, from_name: str) -> str:
           <span style="color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">{from_name}</span>
         </td></tr>
         <tr><td style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.08);border-top:none;padding:32px;border-radius:0 0 16px 16px;color:#e2e8f0;font-size:15px;line-height:1.7;">
+          {ad_block_top}
           {paragraphs}
           <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:24px 0;">
           <p style="margin:0;font-size:12px;color:#64748b;text-align:center;">
-            Письмо отправлено через <strong>MAIL-KA</strong>.
+            Письмо отправлено через <strong>MAIL-KA</strong> — программный продукт ООО «МАТ-Лабс» (ИНН 6312223437).
+            <br>Платформа не является рекламодателем — рекламодатель указан выше.
           </p>
+          {ad_block_bottom}
         </td></tr>
       </table>
     </td></tr>
@@ -498,7 +524,9 @@ def handler(event: dict, context) -> dict:
 
         cur = conn.cursor()
         cur.execute(
-            f"SELECT id, name, subject, body_text, from_name, from_email, reply_to FROM {SCHEMA}.campaigns WHERE id = %s",
+            f"SELECT id, name, subject, body_text, from_name, from_email, reply_to, "
+            f"is_advertising, erid, advertiser_name, advertiser_inn "
+            f"FROM {SCHEMA}.campaigns WHERE id = %s",
             (campaign_id,)
         )
         camp = cur.fetchone()
@@ -510,12 +538,26 @@ def handler(event: dict, context) -> dict:
         camp_data = {
             "id": camp[0], "name": camp[1], "subject": camp[2] or "",
             "body": camp[3] or "", "from_name": camp[4] or cfg["from_name"],
-            "from_email": camp[5] or "", "reply_to": camp[6] or ""
+            "from_email": camp[5] or "", "reply_to": camp[6] or "",
+            "is_advertising": bool(camp[7]),
+            "erid": camp[8] or "",
+            "advertiser_name": camp[9] or "",
+            "advertiser_inn": camp[10] or "",
         }
         if not camp_data["subject"] or not camp_data["body"]:
             cur.close()
             conn.close()
             return resp(400, {"error": "У кампании нет темы или текста. Заполни в редакторе."})
+
+        # 38-ФЗ маркировка: Реклама · Название · ИНН · erid
+        ad_label = build_ad_label(
+            camp_data["is_advertising"],
+            camp_data["advertiser_name"],
+            camp_data["advertiser_inn"],
+            camp_data["erid"],
+        )
+        if ad_label and "Реклама" not in camp_data["subject"]:
+            camp_data["subject"] = "[Реклама] " + camp_data["subject"]
 
         if segment_filter:
             cur.execute(f"SELECT id, name, email, segment FROM {SCHEMA}.contacts WHERE status = 'active' AND segment = %s", (segment_filter,))
@@ -548,7 +590,10 @@ def handler(event: dict, context) -> dict:
             contact = {"name": c[1], "email": c[2], "segment": c[3]}
             ptext = substitute_vars(camp_data["body"], contact)
             psubj = substitute_vars(camp_data["subject"], contact)
-            html = text_to_html(ptext, sender_name)
+            if ad_label:
+                ptext = f"{ad_label}\n\n{ptext}\n\n— — —\n{ad_label}"
+            html = text_to_html(ptext if not ad_label else substitute_vars(camp_data["body"], contact),
+                                sender_name, ad_label)
 
             try:
                 msg = MIMEMultipart("alternative")

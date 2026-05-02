@@ -42,7 +42,8 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor()
         fields = []
         values = []
-        allowed = ["name", "status", "subject", "preheader", "body_text", "sent_count", "open_rate", "click_rate"]
+        allowed = ["name", "status", "subject", "preheader", "body_text", "sent_count", "open_rate", "click_rate",
+                   "is_advertising", "erid", "advertiser_name", "advertiser_inn"]
         for key in allowed:
             if key in body:
                 fields.append(f"{key} = %s")
@@ -84,7 +85,9 @@ def handler(event: dict, context) -> dict:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        f"SELECT id, name, status, subject, preheader, body_text, sent_count, open_rate, click_rate, created_at, sent_at FROM {SCHEMA}.campaigns ORDER BY created_at DESC"
+        f"SELECT id, name, status, subject, preheader, body_text, sent_count, open_rate, click_rate, "
+        f"created_at, sent_at, is_advertising, erid, advertiser_name, advertiser_inn "
+        f"FROM {SCHEMA}.campaigns ORDER BY created_at DESC"
     )
     rows = cur.fetchall()
 
@@ -115,6 +118,10 @@ def handler(event: dict, context) -> dict:
             "click_rate": float(r[8]) if r[8] else 0,
             "created_at": r[9].isoformat() if r[9] else None,
             "sent_at": r[10].isoformat() if r[10] else None,
+            "is_advertising": bool(r[11]) if len(r) > 11 else False,
+            "erid": (r[12] or "") if len(r) > 12 else "",
+            "advertiser_name": (r[13] or "") if len(r) > 13 else "",
+            "advertiser_inn": (r[14] or "") if len(r) > 14 else "",
         })
 
     return {
