@@ -160,12 +160,19 @@ export const testSmtpConnection = async (): Promise<{ ok: boolean; message?: str
   return r.json();
 };
 
+function authHeaders(): Record<string, string> {
+  try {
+    const t = localStorage.getItem("mk_auth_token");
+    return t ? { "X-Auth-Token": t } : {};
+  } catch { return {}; }
+}
+
 export async function sendTestEmail(data: {
   to: string; subject: string; text: string; from_name?: string; from_email?: string;
-}): Promise<{ ok: boolean; error?: string; message_id?: string; provider?: string }> {
+}): Promise<{ ok: boolean; error?: string; message?: string; message_id?: string; provider?: string }> {
   const r = await fetch(`${SEND_EMAIL_URL}?action=test`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(data),
   });
   return r.json();
@@ -173,10 +180,10 @@ export async function sendTestEmail(data: {
 
 export async function sendCampaignBlast(data: {
   campaign_id: number; segment?: string;
-}): Promise<{ ok: boolean; sent: number; failed: number; total: number; errors?: { email: string; error: string }[] }> {
+}): Promise<{ ok: boolean; sent?: number; failed?: number; total?: number; error?: string; message?: string; errors?: { email: string; error: string }[] }> {
   const r = await fetch(`${SEND_EMAIL_URL}?action=blast`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(data),
   });
   return r.json();

@@ -16,6 +16,8 @@
 """
 import json
 import os
+import hmac
+import hashlib
 import smtplib
 import ssl
 from email.mime.text import MIMEText
@@ -26,10 +28,69 @@ import psycopg2
 
 SCHEMA = "t_p46602131_mailflow_automation"
 
+
+def _get_auth_secret() -> bytes | None:
+    s = os.environ.get('AUTH_JWT_SECRET', '')
+    return s.encode() if s and len(s) >= 16 else None
+
+
+def require_verified_user(event: dict, conn) -> tuple[int | None, dict | None]:
+    """Проверяем X-Auth-Token и что email подтверждён.
+    Возвращает (user_id, None) — успех, или (None, error_response)."""
+    headers = event.get('headers') or {}
+    token = (headers.get('X-Auth-Token') or headers.get('x-auth-token') or '').strip()
+    if not token:
+        auth_h = headers.get('X-Authorization') or headers.get('x-authorization') or ''
+        if auth_h.lower().startswith('bearer '):
+            token = auth_h[7:].strip()
+    if not token:
+        return None, {'statusCode': 401, 'headers': CORS,
+                      'body': json.dumps({'ok': False, 'error': 'Требуется вход в аккаунт'}, ensure_ascii=False)}
+
+    secret = _get_auth_secret()
+    if not secret:
+        return None, {'statusCode': 500, 'headers': CORS,
+                      'body': json.dumps({'ok': False, 'error': 'Auth не настроен'}, ensure_ascii=False)}
+
+    try:
+        parts = token.split('.')
+        if len(parts) != 3:
+            raise ValueError('bad token')
+        user_id_str, raw, sig = parts
+        expected = hmac.new(secret, f"{user_id_str}.{raw}".encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, sig):
+            raise ValueError('bad sig')
+        user_id = int(user_id_str)
+    except Exception:
+        return None, {'statusCode': 401, 'headers': CORS,
+                      'body': json.dumps({'ok': False, 'error': 'Недействительный токен'}, ensure_ascii=False)}
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT s.user_id, u.is_active, u.is_email_verified "
+        f"FROM {SCHEMA}.user_sessions s JOIN {SCHEMA}.users u ON u.id = s.user_id "
+        f"WHERE s.token_hash = %s AND s.revoked_at IS NULL AND s.expires_at > NOW()",
+        (token_hash,)
+    )
+    row = cur.fetchone()
+    if not row:
+        return None, {'statusCode': 401, 'headers': CORS,
+                      'body': json.dumps({'ok': False, 'error': 'Сессия истекла'}, ensure_ascii=False)}
+    if not row[1]:
+        return None, {'statusCode': 403, 'headers': CORS,
+                      'body': json.dumps({'ok': False, 'error': 'Аккаунт деактивирован'}, ensure_ascii=False)}
+    if not row[2]:
+        return None, {'statusCode': 403, 'headers': CORS,
+                      'body': json.dumps({'ok': False, 'error': 'email_not_verified',
+                                         'message': 'Подтвердите email, чтобы отправлять письма. Письмо со ссылкой мы уже отправили — проверьте «Входящие» и «Спам».'},
+                                        ensure_ascii=False)}
+    return row[0], None
+
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, X-Auth-Token, X-CSRF-Token, X-System-Token",
 }
 
 SMTP_PRESETS = {
@@ -324,6 +385,12 @@ def handler(event: dict, context) -> dict:
 
     # ── POST test (тест-письмо) ───────────────────────────────────────────────
     if action == "test" and method == "POST":
+        # Защита: только авторизованные пользователи с подтверждённым email
+        _uid, _err = require_verified_user(event, conn)
+        if _err:
+            conn.close()
+            return _err
+
         to = body.get("to", "").strip()
         subject = body.get("subject", "Тестовое письмо от MAIL-KA")
         text = body.get("text", "Это тестовое письмо. Если ты его видишь — собственный SMTP-движок MAIL-KA работает!")
@@ -353,6 +420,18 @@ def handler(event: dict, context) -> dict:
 
     # ── POST send ─────────────────────────────────────────────────────────────
     if action in ("send", ""):
+        # Системные вызовы (welcome-письма, верификация) проходят по секретному токену
+        headers_in = event.get("headers") or {}
+        sys_token = (headers_in.get("X-System-Token") or headers_in.get("x-system-token") or "").strip()
+        expected_sys = os.environ.get("SYSTEM_EMAIL_TOKEN", "")
+        is_system_call = bool(expected_sys and sys_token and hmac.compare_digest(sys_token, expected_sys))
+
+        if not is_system_call:
+            _uid, _err = require_verified_user(event, conn)
+            if _err:
+                conn.close()
+                return _err
+
         to = body.get("to", "").strip()
         subject = body.get("subject", "")
         text = body.get("text") or body.get("body", "")
@@ -399,6 +478,12 @@ def handler(event: dict, context) -> dict:
 
     # ── POST blast ────────────────────────────────────────────────────────────
     if action == "blast" and method == "POST":
+        # Защита: массовая рассылка только верифицированным
+        _uid, _err = require_verified_user(event, conn)
+        if _err:
+            conn.close()
+            return _err
+
         campaign_id = body.get("campaign_id")
         segment_filter = body.get("segment")
 

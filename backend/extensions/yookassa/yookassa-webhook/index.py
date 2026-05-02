@@ -69,12 +69,12 @@ def send_welcome_email(user_email: str, user_name: str, plan_id: str,
         'from_name': 'MAIL-KA'
     }).encode('utf-8')
 
-    request = Request(
-        SEND_EMAIL_URL,
-        data=payload,
-        headers={'Content-Type': 'application/json'},
-        method='POST'
-    )
+    sys_token = os.environ.get('SYSTEM_EMAIL_TOKEN', '')
+    req_headers = {'Content-Type': 'application/json'}
+    if sys_token:
+        req_headers['X-System-Token'] = sys_token
+
+    request = Request(SEND_EMAIL_URL, data=payload, headers=req_headers, method='POST')
 
     try:
         with urlopen(request, timeout=10) as response:

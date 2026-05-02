@@ -3,12 +3,75 @@ import json
 import os
 import re
 import uuid
+import hmac
+import hashlib
 import base64
 from datetime import datetime
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 import psycopg2
+
+
+def _check_verified_user(event: dict, conn, schema_prefix: str) -> tuple[int | None, dict | None]:
+    """Возвращает (user_id, None) если юзер залогинен и email подтверждён,
+    иначе (None, error_response_dict). Если auth не настроен — пропускает (опционально)."""
+    headers_in = event.get('headers') or {}
+    cors = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-CSRF-Token',
+        'Content-Type': 'application/json'
+    }
+
+    secret_str = os.environ.get('AUTH_JWT_SECRET', '')
+    if not secret_str or len(secret_str) < 16:
+        # auth не настроен — не блокируем (для совместимости)
+        return None, None
+
+    token = (headers_in.get('X-Auth-Token') or headers_in.get('x-auth-token') or '').strip()
+    if not token:
+        auth_h = headers_in.get('X-Authorization') or headers_in.get('x-authorization') or ''
+        if auth_h.lower().startswith('bearer '):
+            token = auth_h[7:].strip()
+    if not token:
+        return None, {'statusCode': 401, 'headers': cors,
+                      'body': json.dumps({'error': 'Войдите в аккаунт, чтобы оплатить'}, ensure_ascii=False)}
+
+    try:
+        parts = token.split('.')
+        if len(parts) != 3:
+            raise ValueError()
+        user_id_str, raw, sig = parts
+        expected = hmac.new(secret_str.encode(), f"{user_id_str}.{raw}".encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, sig):
+            raise ValueError()
+        user_id = int(user_id_str)
+    except Exception:
+        return None, {'statusCode': 401, 'headers': cors,
+                      'body': json.dumps({'error': 'Недействительный токен'}, ensure_ascii=False)}
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT s.user_id, u.is_active, u.is_email_verified "
+        f"FROM {schema_prefix}user_sessions s JOIN {schema_prefix}users u ON u.id = s.user_id "
+        f"WHERE s.token_hash = %s AND s.revoked_at IS NULL AND s.expires_at > NOW()",
+        (token_hash,)
+    )
+    row = cur.fetchone()
+    if not row:
+        return None, {'statusCode': 401, 'headers': cors,
+                      'body': json.dumps({'error': 'Сессия истекла'}, ensure_ascii=False)}
+    if not row[1]:
+        return None, {'statusCode': 403, 'headers': cors,
+                      'body': json.dumps({'error': 'Аккаунт деактивирован'}, ensure_ascii=False)}
+    if not row[2]:
+        return None, {'statusCode': 403, 'headers': cors,
+                      'body': json.dumps({'error': 'email_not_verified',
+                                         'message': 'Подтвердите email, чтобы оплатить тариф. Письмо со ссылкой мы уже отправили.'},
+                                        ensure_ascii=False)}
+    return row[0], None
 
 
 # =============================================================================
@@ -38,7 +101,7 @@ YOOKASSA_API_URL = "https://api.yookassa.ru/v3/payments"
 HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-CSRF-Token',
     'Content-Type': 'application/json'
 }
 
@@ -217,6 +280,12 @@ def handler(event, context):
 
     S = get_schema()
     conn = get_connection()
+
+    # Защита: только авторизованный пользователь с подтверждённым email
+    _uid, _err = _check_verified_user(event, conn, S)
+    if _err:
+        conn.close()
+        return _err
 
     try:
         cur = conn.cursor()

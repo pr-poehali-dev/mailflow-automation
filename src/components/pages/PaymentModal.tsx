@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useYookassa, openPaymentPage } from "@/components/extensions/yookassa/useYookassa";
+import { useAuth } from "@/contexts/AuthContext";
 
 const YOOKASSA_API_URL = "https://functions.poehali.dev/d8b8511e-670b-47b4-8653-0fa0f7757684";
 
@@ -15,8 +16,21 @@ interface Props {
 }
 
 export function PaymentModal({ open, onClose, planId, planName, planColor, amount, yearly }: Props) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const { user, resendVerification } = useAuth();
+  const needVerify = !!user && user.is_email_verified === false;
+  const [resending, setResending] = useState(false);
+  const [resentMsg, setResentMsg] = useState<string | null>(null);
+
+  const handleResendVerify = async () => {
+    setResending(true);
+    const r = await resendVerification();
+    setResentMsg(r.ok ? "Письмо отправлено! Проверьте почту." : (r.error || "Не удалось отправить"));
+    setResending(false);
+    setTimeout(() => setResentMsg(null), 6000);
+  };
+
+  const [email, setEmail] = useState(user?.email || "");
+  const [name, setName] = useState(user?.name || "");
   const [agree, setAgree] = useState(true);
   const [error, setError] = useState("");
 
@@ -164,14 +178,34 @@ export function PaymentModal({ open, onClose, planId, planName, planColor, amoun
             </div>
           )}
 
+          {needVerify && (
+            <div className="rounded-lg p-2.5 flex items-start gap-2"
+              style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)" }}>
+              <Icon name="ShieldAlert" size={13} style={{ color: "#f59e0b", marginTop: 1 }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] font-semibold">Подтвердите email перед оплатой</div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {resentMsg || "Защита от мошенничества. Письмо со ссылкой отправили на " + (user?.email || "")}
+                </div>
+                <button onClick={handleResendVerify} disabled={resending}
+                  className="mt-1.5 text-[10px] font-semibold underline hover:text-foreground disabled:opacity-60">
+                  {resending ? "Отправляем..." : "Отправить письмо ещё раз"}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* CTA */}
           <button
             onClick={handlePay}
-            disabled={isLoading}
-            className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-50 transition-transform hover:scale-[1.01]"
+            disabled={isLoading || needVerify}
+            title={needVerify ? "Сначала подтвердите email" : undefined}
+            className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-transform hover:scale-[1.01]"
             style={{ background: `linear-gradient(135deg, ${planColor}, #06b6d4)` }}>
             {isLoading ? (
               <><Icon name="Loader2" size={14} className="animate-spin" />Создаём платёж...</>
+            ) : needVerify ? (
+              <><Icon name="Lock" size={14} />Подтвердите email для оплаты</>
             ) : (
               <><Icon name="Lock" size={14} />Перейти к оплате · {total.toLocaleString("ru-RU")} ₽</>
             )}

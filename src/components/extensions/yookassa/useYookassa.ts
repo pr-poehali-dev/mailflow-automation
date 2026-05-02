@@ -127,16 +127,22 @@ export function useYookassa(options: UseYookassaOptions): UseYookassaReturn {
           billing_period: payload.billingPeriod || "",
         };
 
+        const authHeaders: Record<string, string> = {};
+        try {
+          const t = localStorage.getItem("mk_auth_token");
+          if (t) authHeaders["X-Auth-Token"] = t;
+        } catch { /* ignore */ }
+
         const response = await fetch(apiUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify(body),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "Ошибка создания платежа");
+          throw new Error(data.message || data.error || "Ошибка создания платежа");
         }
 
         setPaymentUrl(data.payment_url);

@@ -216,12 +216,12 @@ def send_verification_email(to_email: str, name: str, token: str) -> bool:
         'from_name': 'MAIL-KA'
     }).encode('utf-8')
 
-    request = Request(
-        SEND_EMAIL_URL,
-        data=payload,
-        headers={'Content-Type': 'application/json'},
-        method='POST'
-    )
+    sys_token = os.environ.get('SYSTEM_EMAIL_TOKEN', '')
+    headers = {'Content-Type': 'application/json'}
+    if sys_token:
+        headers['X-System-Token'] = sys_token
+
+    request = Request(SEND_EMAIL_URL, data=payload, headers=headers, method='POST')
     try:
         with urlopen(request, timeout=10) as response:
             response.read()

@@ -2,10 +2,24 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { chartData } from "@/data/mockData";
 import { fetchCampaigns, updateCampaign, sendTestEmail, sendCampaignBlast, Campaign } from "@/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ─── EmailEditor ──────────────────────────────────────────────────────────────
 
 export function EmailEditor() {
+  const { user, resendVerification } = useAuth();
+  const needVerify = !!user && user.is_email_verified === false;
+  const [resending, setResending] = useState(false);
+  const [resentMsg, setResentMsg] = useState<string | null>(null);
+
+  const handleResendVerify = async () => {
+    setResending(true);
+    const r = await resendVerification();
+    setResentMsg(r.ok ? "Письмо отправлено! Проверьте «Входящие» и «Спам»." : (r.error || "Не удалось отправить"));
+    setResending(false);
+    setTimeout(() => setResentMsg(null), 6000);
+  };
+
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [subject, setSubject] = useState("Специальное предложение только для вас 🔥");
@@ -20,12 +34,12 @@ export function EmailEditor() {
   const [showTest, setShowTest] = useState(false);
   const [testTo, setTestTo] = useState("");
   const [testSending, setTestSending] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; error?: string } | null>(null);
+  const [testResult, setTestResult] = useState<{ ok: boolean; error?: string; message?: string } | null>(null);
 
   // Blast
   const [showBlast, setShowBlast] = useState(false);
   const [blasting, setBlasting] = useState(false);
-  const [blastResult, setBlastResult] = useState<{ ok: boolean; sent?: number; failed?: number; total?: number } | null>(null);
+  const [blastResult, setBlastResult] = useState<{ ok: boolean; sent?: number; failed?: number; total?: number; error?: string; message?: string } | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -89,6 +103,28 @@ export function EmailEditor() {
 
   return (
     <div className="p-6 space-y-5">
+      {needVerify && (
+        <div className="rounded-xl p-3 flex items-center gap-3 fade-in-up"
+          style={{ background: "linear-gradient(90deg, rgba(245,158,11,0.12), rgba(236,72,153,0.06))",
+                   border: "1px solid rgba(245,158,11,0.35)" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(245,158,11,0.2)" }}>
+            <Icon name="ShieldAlert" size={15} style={{ color: "#f59e0b" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold">Отправка писем заблокирована до подтверждения email</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">
+              {resentMsg || "Это защита от спам-ботов. Проверьте почту по адресу " + (user?.email || "") + " и перейдите по ссылке из письма."}
+            </div>
+          </div>
+          <button onClick={handleResendVerify} disabled={resending}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex items-center gap-1.5 disabled:opacity-60 flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #f59e0b, #ec4899)" }}>
+            {resending ? <><Icon name="Loader2" size={11} className="animate-spin" />Отправляем</>
+                       : <><Icon name="Send" size={11} />Отправить письмо</>}
+          </button>
+        </div>
+      )}
       <div className="fade-in-up flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Редактор писем</h1>
@@ -96,8 +132,10 @@ export function EmailEditor() {
         </div>
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => { setShowTest(!showTest); setShowBlast(false); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass hover:bg-white/8 transition-colors">
-            <Icon name="Send" size={15} />
+            disabled={needVerify}
+            title={needVerify ? "Подтвердите email, чтобы отправлять письма" : undefined}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass hover:bg-white/8 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <Icon name={needVerify ? "Lock" : "Send"} size={15} />
             Тест-письмо
           </button>
           <button onClick={handleSave} disabled={saving || !selectedId}
@@ -106,10 +144,11 @@ export function EmailEditor() {
             {saving ? "Сохраняем..." : saved ? "Сохранено!" : "Сохранить"}
           </button>
           <button onClick={() => { setShowBlast(!showBlast); setShowTest(false); }}
-            disabled={!selectedId}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+            disabled={!selectedId || needVerify}
+            title={needVerify ? "Подтвердите email, чтобы запускать рассылки" : undefined}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
-            <Icon name="Rocket" size={15} />
+            <Icon name={needVerify ? "Lock" : "Rocket"} size={15} />
             Запустить рассылку
           </button>
         </div>
@@ -151,15 +190,18 @@ export function EmailEditor() {
             </div>
           </div>
           <div className="flex gap-2 items-center flex-wrap">
-            <button onClick={handleTest} disabled={testSending || !testTo.trim()}
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-2"
+            <button onClick={handleTest} disabled={testSending || !testTo.trim() || needVerify}
+              title={needVerify ? "Подтвердите email" : undefined}
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
-              {testSending ? <><Icon name="Loader2" size={14} className="animate-spin" />Отправляем...</> : <><Icon name="Send" size={14} />Отправить тест</>}
+              {testSending ? <><Icon name="Loader2" size={14} className="animate-spin" />Отправляем...</>
+                          : needVerify ? <><Icon name="Lock" size={14} />Подтвердите email</>
+                          : <><Icon name="Send" size={14} />Отправить тест</>}
             </button>
             {testResult && (
               <div className={`text-sm flex items-center gap-2 ${testResult.ok ? "text-green-400" : "text-red-400"}`}>
                 <Icon name={testResult.ok ? "CheckCircle" : "XCircle"} size={15} />
-                {testResult.ok ? "Письмо отправлено! Проверь почту." : `Ошибка: ${testResult.error}`}
+                {testResult.ok ? "Письмо отправлено! Проверь почту." : `Ошибка: ${testResult.message || testResult.error}`}
               </div>
             )}
           </div>
@@ -179,13 +221,16 @@ export function EmailEditor() {
               style={{ background: blastResult.ok ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.1)" }}>
               {blastResult.ok
                 ? `✓ Готово! Отправлено ${blastResult.sent} из ${blastResult.total} писем${blastResult.failed ? `, ${blastResult.failed} ошибок` : ""}.`
-                : "Ошибка при отправке"}
+                : `Ошибка: ${blastResult.message || blastResult.error || "не удалось отправить"}`}
             </div>
           ) : (
-            <button onClick={handleBlast} disabled={blasting || !selectedId}
-              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-2"
+            <button onClick={handleBlast} disabled={blasting || !selectedId || needVerify}
+              title={needVerify ? "Подтвердите email" : undefined}
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
-              {blasting ? <><Icon name="Loader2" size={14} className="animate-spin" />Отправляем...</> : <><Icon name="Rocket" size={14} />Запустить</>}
+              {blasting ? <><Icon name="Loader2" size={14} className="animate-spin" />Отправляем...</>
+                       : needVerify ? <><Icon name="Lock" size={14} />Подтвердите email</>
+                       : <><Icon name="Rocket" size={14} />Запустить</>}
             </button>
           )}
         </div>
