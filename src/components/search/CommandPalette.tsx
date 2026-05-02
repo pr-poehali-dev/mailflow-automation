@@ -188,25 +188,19 @@ export function CommandPalette({ open, onClose, setPage }: Props) {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 fade-in-up"
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
       onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "rgba(20, 20, 28, 0.95)",
-          border: "1px solid rgba(139,92,246,0.3)",
-          boxShadow: "0 25px 70px rgba(139,92,246,0.25)",
-        }}>
+      <div className="cmd-palette w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}>
         {/* Поле поиска */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/10">
+        <div className="cmd-palette-divider flex items-center gap-3 px-4 py-3.5 border-b">
           <Icon name="Search" size={17} className="text-muted-foreground flex-shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск по разделам, кампаниям, контактам..."
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground text-white"
+            className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground text-foreground"
           />
-          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted-foreground"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <kbd className="cmd-kbd hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted-foreground">
             ESC
           </kbd>
         </div>
@@ -238,17 +232,13 @@ export function CommandPalette({ open, onClose, setPage }: Props) {
                         data-idx={idx}
                         onMouseEnter={() => setActiveIdx(idx)}
                         onClick={() => it.onSelect()}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
-                        style={{
-                          background: isActive ? "rgba(139,92,246,0.15)" : "transparent",
-                          borderLeft: isActive ? "2px solid #8b5cf6" : "2px solid transparent",
-                        }}>
+                        className={`cmd-item w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isActive ? "cmd-item-active" : ""}`}>
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{ background: `${it.color}22`, border: `1px solid ${it.color}40` }}>
                           <Icon name={it.icon} size={14} style={{ color: it.color }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate flex items-center gap-2">
+                          <div className="text-sm font-medium text-foreground truncate flex items-center gap-2">
                             {it.title}
                             {it.badge && (
                               <span className="text-[8px] font-bold px-1.5 py-0.5 rounded text-white"
@@ -274,14 +264,14 @@ export function CommandPalette({ open, onClose, setPage }: Props) {
         </div>
 
         {/* Подвал с подсказками */}
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-t border-white/10 text-[10px] text-muted-foreground">
+        <div className="cmd-palette-divider flex items-center justify-between gap-3 px-4 py-2.5 border-t text-[10px] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.06)" }}>↑↓</kbd>
+              <kbd className="cmd-kbd px-1.5 py-0.5 rounded font-mono">↑↓</kbd>
               навигация
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.06)" }}>↵</kbd>
+              <kbd className="cmd-kbd px-1.5 py-0.5 rounded font-mono">↵</kbd>
               открыть
             </span>
           </div>

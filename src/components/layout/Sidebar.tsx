@@ -1,6 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { navItems, Page } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 
 interface SidebarProps {
   page: Page;
@@ -22,12 +23,8 @@ export default function Sidebar({
 
   return (
     <aside
-      className="flex flex-col border-r border-border transition-all duration-300 flex-shrink-0 relative"
-      style={{
-        width: collapsed ? 60 : 220,
-        background: "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(248,247,255,0.7))",
-        backdropFilter: "blur(12px)",
-      }}
+      className="sidebar-shell flex flex-col border-r border-border transition-all duration-300 flex-shrink-0 relative"
+      style={{ width: collapsed ? 60 : 220 }}
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-border">
@@ -112,6 +109,11 @@ export default function Sidebar({
           );
         })}
       </nav>
+
+      {/* Theme toggle */}
+      <div className="px-2 pb-2 border-t border-border pt-2">
+        <ThemeToggle collapsed={collapsed} />
+      </div>
 
       {/* User / Auth */}
       {user ? (
