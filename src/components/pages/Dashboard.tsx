@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { StatusBadge, MiniChart } from "@/components/shared";
 import { Page } from "@/data/mockData";
 import { fetchCampaigns, Campaign } from "@/api";
+import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist";
 
 export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -41,6 +42,8 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
           Новая кампания
         </button>
       </div>
+
+      <OnboardingChecklist setPage={setPage} campaigns={campaigns} />
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((s, i) => (
