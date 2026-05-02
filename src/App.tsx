@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Page } from "@/data/mockData";
 import Sidebar from "@/components/layout/Sidebar";
 import Seo from "@/components/Seo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PaymentSuccessPage from "@/components/pages/PaymentSuccessPage";
+import AuthModal from "@/components/auth/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dashboard,
   Campaigns,
@@ -20,10 +22,31 @@ import OmnichannelPage from "@/components/pages/OmnichannelPage";
 import PredictPage from "@/components/pages/PredictPage";
 import PricingPage from "@/components/pages/PricingPage";
 
+// Главная и страница тарифов открыты всем — остальные требуют регистрацию
+const PUBLIC_PAGES: Page[] = ["dashboard", "pricing"];
+
+const PAGE_LABELS: Partial<Record<Page, string>> = {
+  campaigns: "рассылок",
+  contacts: "базы контактов",
+  editor: "редактора писем",
+  automation: "автоматизаций",
+  omnichannel: "omnichannel-каналов",
+  predict: "Predictive AI",
+  analytics: "аналитики",
+  integrations: "интеграций",
+  templates: "шаблонов",
+  settings: "настроек",
+  api: "API-ключей",
+};
+
 export default function App() {
+  const { user, initialized } = useAuth();
   const [page, setPage] = useState<Page>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authReason, setAuthReason] = useState<string | undefined>();
+  const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
   // Если ЮKassa вернула пользователя с ?payment=success — показываем экран благодарности
   useEffect(() => {
@@ -33,8 +56,31 @@ export default function App() {
     }
   }, []);
 
+  // Защита переходов: незалогиненный — может только на public страницы
+  const guardedSetPage = useCallback((target: Page) => {
+    if (!user && !PUBLIC_PAGES.includes(target)) {
+      setAuthReason(`Создайте аккаунт, чтобы открыть раздел ${PAGE_LABELS[target] || ""}`.trim());
+      setAuthMode("register");
+      setAuthOpen(true);
+      return;
+    }
+    setPage(target);
+  }, [user]);
+
+  // Если юзер залогинился — закрываем модалку и пускаем на страницу
+  useEffect(() => {
+    if (user && authOpen) setAuthOpen(false);
+  }, [user, authOpen]);
+
+  // Если разлогинился, находясь на приватной странице — на главную
+  useEffect(() => {
+    if (initialized && !user && !PUBLIC_PAGES.includes(page)) {
+      setPage("dashboard");
+    }
+  }, [user, initialized, page]);
+
   const pageMap: Record<Page, JSX.Element> = {
-    dashboard: <Dashboard setPage={setPage} />,
+    dashboard: <Dashboard setPage={guardedSetPage} />,
     campaigns: <Campaigns />,
     contacts: <Contacts />,
     editor: <EmailEditor />,
@@ -43,7 +89,7 @@ export default function App() {
     predict: <PredictPage />,
     analytics: <Analytics />,
     integrations: <Integrations />,
-    templates: <Templates setPage={setPage} />,
+    templates: <Templates setPage={guardedSetPage} />,
     pricing: <PricingPage />,
     settings: <SettingsPage />,
     api: <ApiPage />,
@@ -53,9 +99,11 @@ export default function App() {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar
         page={page}
-        setPage={setPage}
+        setPage={guardedSetPage}
         collapsed={collapsed}
         setCollapsed={setCollapsed}
+        onLoginClick={() => { setAuthMode("login"); setAuthReason(undefined); setAuthOpen(true); }}
+        onRegisterClick={() => { setAuthMode("register"); setAuthReason(undefined); setAuthOpen(true); }}
       />
 
       <main className="flex-1 overflow-y-auto relative" key={page}>
@@ -66,17 +114,24 @@ export default function App() {
           style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent)" }} />
         <div className="relative z-10">
           {paymentSuccess ? (
-            <PaymentSuccessPage setPage={(p) => { setPaymentSuccess(false); setPage(p); }} />
+            <PaymentSuccessPage setPage={(p) => { setPaymentSuccess(false); guardedSetPage(p); }} />
           ) : (
             <>
               <div className="px-6 pt-4">
-                <Breadcrumbs page={page} setPage={setPage} />
+                <Breadcrumbs page={page} setPage={guardedSetPage} />
               </div>
               {pageMap[page]}
             </>
           )}
         </div>
       </main>
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode={authMode}
+        reason={authReason}
+      />
     </div>
   );
 }
