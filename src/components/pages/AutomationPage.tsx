@@ -79,12 +79,12 @@ const PREMADE_FLOWS: Flow[] = [
 
 const STEP_META: Record<StepType, { icon: string; color: string; bg: string; label: string }> = {
   trigger:   { icon: "Zap",       color: "#f59e0b", bg: "rgba(245,158,11,0.1)", label: "Триггер" },
-  email:     { icon: "Mail",      color: "#8b5cf6", bg: "rgba(139,92,246,0.1)", label: "Email" },
+  email:     { icon: "Mail",      color: "#8b5cf6", bg: "rgba(139,92,246,0.1)", label: "Письмо" },
   delay:     { icon: "Clock",     color: "#06b6d4", bg: "rgba(6,182,212,0.1)",  label: "Задержка" },
   condition: { icon: "GitBranch", color: "#ec4899", bg: "rgba(236,72,153,0.1)", label: "Условие" },
-  sms:       { icon: "MessageSquare", color: "#10b981", bg: "rgba(16,185,129,0.1)", label: "SMS" },
-  tag:       { icon: "Tag",       color: "#64748b", bg: "rgba(100,116,139,0.1)", label: "Тег" },
-  webhook:   { icon: "Webhook",   color: "#0891b2", bg: "rgba(8,145,178,0.1)",  label: "Webhook" },
+  sms:       { icon: "MessageSquare", color: "#10b981", bg: "rgba(16,185,129,0.1)", label: "СМС" },
+  tag:       { icon: "Tag",       color: "#64748b", bg: "rgba(100,116,139,0.1)", label: "Метка" },
+  webhook:   { icon: "Webhook",   color: "#0891b2", bg: "rgba(8,145,178,0.1)",  label: "Веб-хук" },
 };
 
 export function AutomationPage() {
@@ -104,14 +104,14 @@ export function AutomationPage() {
   };
 
   const templates = [
-    { name: "Welcome-серия", icon: "Hand", desc: "5 писем для новичков" },
+    { name: "Приветственная серия", icon: "Hand", desc: "5 писем для новичков" },
     { name: "Брошенная корзина", icon: "ShoppingCart", desc: "Возврат 38%" },
     { name: "Реактивация", icon: "RefreshCw", desc: "Спящих клиентов" },
     { name: "День рождения", icon: "Cake", desc: "Поздравление + бонус" },
     { name: "Лид-магнит", icon: "Magnet", desc: "После скачивания PDF" },
-    { name: "Опрос NPS", icon: "Star", desc: "После покупки" },
-    { name: "Upsell", icon: "TrendingUp", desc: "Допродажа" },
-    { name: "Триал заканчивается", icon: "AlertTriangle", desc: "Конверсия в платный" },
+    { name: "Опрос об удовлетворённости", icon: "Star", desc: "После покупки" },
+    { name: "Допродажа", icon: "TrendingUp", desc: "Предложение более дорогого тарифа" },
+    { name: "Пробный период заканчивается", icon: "AlertTriangle", desc: "Перевод в платный тариф" },
   ];
 
   return (
@@ -121,7 +121,7 @@ export function AutomationPage() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Автоматизации
             <span className="text-xs px-2 py-0.5 rounded-full text-white"
-              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>PRO</span>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>ПРО</span>
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">Визуальные сценарии · триггеры → действия → условия</p>
         </div>

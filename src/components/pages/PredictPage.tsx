@@ -40,11 +40,11 @@ export function PredictPage() {
       <div className="fade-in-up flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            Predictive Analytics
+            ИИ-прогноз поведения
             <span className="text-xs px-2 py-0.5 rounded-full text-white"
-              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>AI</span>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>ИИ</span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-0.5">LTV-прогноз, churn risk, best send time, attribution</p>
+          <p className="text-muted-foreground text-sm mt-0.5">Прогноз пожизненной ценности клиента, риск ухода, лучшее время отправки, источники дохода</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass hover:bg-white/8">
           <Icon name="Download" size={14} />
@@ -55,10 +55,10 @@ export function PredictPage() {
       {/* Hero metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Прогнозируемый LTV", value: "₽ 8.4M", delta: "+18%", icon: "TrendingUp", color: "#10b981" },
-          { label: "Churn risk", value: "12.4%", delta: "-3.2%", icon: "AlertTriangle", color: "#f59e0b", down: true },
-          { label: "Revenue attribution", value: "₽ 842K", delta: "+21%", icon: "Coins", color: "#8b5cf6" },
-          { label: "AI Score (avg)", value: "78", delta: "+6", icon: "Sparkles", color: "#06b6d4" },
+          { label: "Прогноз пожизненной ценности", value: "₽ 8,4 млн", delta: "+18%", icon: "TrendingUp", color: "#10b981" },
+          { label: "Риск ухода клиента", value: "12,4%", delta: "−3,2%", icon: "AlertTriangle", color: "#f59e0b", down: true },
+          { label: "Доход от рассылок", value: "₽ 842 тыс.", delta: "+21%", icon: "Coins", color: "#8b5cf6" },
+          { label: "Средний ИИ-балл клиента", value: "78", delta: "+6", icon: "Sparkles", color: "#06b6d4" },
         ].map((m, i) => (
           <div key={i} className="glass rounded-2xl p-4 metric-card">
             <div className="flex items-center justify-between mb-2">
@@ -76,7 +76,7 @@ export function PredictPage() {
         <div className="lg:col-span-2 glass rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-bold">Revenue от рассылок</h2>
+              <h2 className="font-bold">Доход от рассылок</h2>
               <p className="text-xs text-muted-foreground">Прогноз на следующий квартал</p>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -106,8 +106,8 @@ export function PredictPage() {
         {/* Cohort retention */}
         <div className="glass rounded-2xl p-5">
           <div className="mb-4">
-            <h2 className="font-bold">Retention curve</h2>
-            <p className="text-xs text-muted-foreground">Когорта апрель 2026</p>
+            <h2 className="font-bold">Кривая удержания</h2>
+            <p className="text-xs text-muted-foreground">Когорта · апрель 2026</p>
           </div>
           <div className="space-y-2">
             {RETENTION.slice(0, 8).map((v, i) => (
@@ -134,9 +134,9 @@ export function PredictPage() {
           <div>
             <h2 className="font-bold flex items-center gap-2">
               <Icon name="Clock" size={16} style={{ color: "#06b6d4" }} />
-              Best Send Time AI
+              Лучшее время отправки (ИИ)
             </h2>
-            <p className="text-xs text-muted-foreground">Для каждого контакта свой идеальный час — open rate растёт в 2-3 раза</p>
+            <p className="text-xs text-muted-foreground">Для каждого контакта свой идеальный час — открываемость растёт в 2-3 раза</p>
           </div>
           <button className="text-xs px-3 py-1.5 rounded-lg font-medium glass hover:bg-white/8 flex items-center gap-1">
             <Icon name="Zap" size={11} />Включить для всех
@@ -164,8 +164,8 @@ export function PredictPage() {
       <div className="glass rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <h2 className="font-bold">Топ контакты по AI-скорингу</h2>
-            <p className="text-xs text-muted-foreground">Engagement score, прогноз LTV и риск ухода</p>
+            <h2 className="font-bold">Лучшие контакты по ИИ-баллу</h2>
+            <p className="text-xs text-muted-foreground">Балл вовлечённости, прогноз пожизненной ценности и риск ухода</p>
           </div>
           <span className="text-xs text-muted-foreground">обновлено сегодня</span>
         </div>
@@ -174,10 +174,10 @@ export function PredictPage() {
             <tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
               <th className="text-left px-5 py-3">Контакт</th>
               <th className="text-left px-5 py-3 hidden md:table-cell">Сегмент</th>
-              <th className="text-left px-5 py-3">AI Score</th>
-              <th className="text-left px-5 py-3 hidden lg:table-cell">LTV прогноз</th>
-              <th className="text-left px-5 py-3">Churn risk</th>
-              <th className="text-left px-5 py-3 hidden md:table-cell">Best time</th>
+              <th className="text-left px-5 py-3">ИИ-балл</th>
+              <th className="text-left px-5 py-3 hidden lg:table-cell">Прогноз дохода</th>
+              <th className="text-left px-5 py-3">Риск ухода</th>
+              <th className="text-left px-5 py-3 hidden md:table-cell">Лучшее время</th>
             </tr>
           </thead>
           <tbody>

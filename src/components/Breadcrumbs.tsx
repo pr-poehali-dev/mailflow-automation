@@ -15,19 +15,19 @@ interface Section {
 }
 
 const PAGE_SECTIONS: Record<Page, Section> = {
-  dashboard:    { category: "Главная",      label: "Дашборд",            icon: "LayoutDashboard" },
+  dashboard:    { category: "Главная",      label: "Сводка",             icon: "LayoutDashboard" },
   campaigns:    { category: "Маркетинг",    label: "Кампании",           icon: "Mail" },
   contacts:     { category: "Аудитория",    label: "Контакты",           icon: "Users" },
   editor:       { category: "Маркетинг",    label: "Редактор писем",     icon: "PenSquare" },
   automation:   { category: "Маркетинг",    label: "Автоматизации",      icon: "Workflow" },
-  omnichannel:  { category: "Каналы",       label: "Omnichannel",        icon: "Network" },
-  predict:      { category: "Аналитика",    label: "Predictive AI",      icon: "Sparkles" },
+  omnichannel:  { category: "Каналы",       label: "Мультиканальные рассылки", icon: "Network" },
+  predict:      { category: "Аналитика",    label: "ИИ-прогноз поведения", icon: "Sparkles" },
   analytics:    { category: "Аналитика",    label: "Отчёты",             icon: "BarChart2" },
   integrations: { category: "Подключения",  label: "Интеграции",         icon: "Puzzle" },
   templates:    { category: "Маркетинг",    label: "Шаблоны писем",      icon: "LayoutTemplate" },
   pricing:      { category: "Аккаунт",      label: "Тарифы и оплата",    icon: "Crown" },
   settings:     { category: "Аккаунт",      label: "Настройки",          icon: "Settings" },
-  api:          { category: "Подключения",  label: "API для разработчиков", icon: "Code2" },
+  api:          { category: "Подключения",  label: "Программный интерфейс для разработчиков", icon: "Code2" },
   security:     { category: "Аккаунт",      label: "Безопасность",       icon: "ShieldCheck" },
 };
 

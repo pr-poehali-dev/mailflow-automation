@@ -20,7 +20,7 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
   const statCards = [
     { label: "Контактов", value: loading ? "..." : stats.contacts_count.toLocaleString(), icon: "Users", color: "var(--neon-purple)" },
     { label: "Отправлено писем", value: loading ? "..." : stats.total_sent.toLocaleString(), icon: "Send", color: "var(--neon-cyan)" },
-    { label: "Средний Open Rate", value: loading ? "..." : `${stats.avg_open_rate}%`, icon: "MailOpen", color: "var(--neon-green)" },
+    { label: "Средняя открываемость", value: loading ? "..." : `${stats.avg_open_rate}%`, icon: "MailOpen", color: "var(--neon-green)" },
     { label: "Кампаний всего", value: loading ? "..." : campaigns.length.toString(), icon: "TrendingUp", color: "var(--neon-pink)" },
   ];
 
@@ -63,7 +63,7 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
         <div className="xl:col-span-2 glass rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Открытия за неделю</h2>
-            <span className="text-xs text-muted-foreground font-mono-custom">7 дней · Opens</span>
+            <span className="text-xs text-muted-foreground font-mono-custom">7 дней · открытия</span>
           </div>
           <MiniChart />
         </div>
@@ -71,10 +71,10 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
           <h2 className="font-semibold mb-4">Быстрые действия</h2>
           <div className="space-y-2">
             {[
-              { icon: "Sparkles", label: "AI: написать письмо", color: "#8b5cf6", page: "editor" as Page },
-              { icon: "Workflow", label: "Автоматизации PRO", color: "#f59e0b", page: "automation" as Page },
-              { icon: "Network", label: "Omnichannel каналы", color: "#06b6d4", page: "omnichannel" as Page },
-              { icon: "TrendingUp", label: "Predictive AI", color: "#ec4899", page: "predict" as Page },
+              { icon: "Sparkles", label: "ИИ: написать письмо", color: "#8b5cf6", page: "editor" as Page },
+              { icon: "Workflow", label: "Автоматизации (ПРО)", color: "#f59e0b", page: "automation" as Page },
+              { icon: "Network", label: "Мультиканальные рассылки", color: "#06b6d4", page: "omnichannel" as Page },
+              { icon: "TrendingUp", label: "ИИ-прогноз поведения", color: "#ec4899", page: "predict" as Page },
             ].map((a, i) => (
               <button key={i} onClick={() => setPage(a.page)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-white/5 transition-colors text-left">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${a.color}22` }}>
@@ -109,7 +109,7 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
                 <th className="text-left px-5 py-3">Название</th>
                 <th className="text-left px-5 py-3 hidden md:table-cell">Статус</th>
                 <th className="text-left px-5 py-3 hidden lg:table-cell">Отправлено</th>
-                <th className="text-left px-5 py-3">Open Rate</th>
+                <th className="text-left px-5 py-3">Открываемость</th>
                 <th className="text-left px-5 py-3 hidden md:table-cell">Дата</th>
               </tr>
             </thead>

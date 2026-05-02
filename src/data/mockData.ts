@@ -16,9 +16,9 @@ export type Page =
 
 export const mockStats = [
   { label: "Контактов", value: "48 291", delta: "+12%", icon: "Users", color: "var(--neon-purple)" },
-  { label: "Отправлено писем", value: "1.2M", delta: "+8%", icon: "Send", color: "var(--neon-cyan)" },
-  { label: "Средний Open Rate", value: "27.4%", delta: "+3.1%", icon: "MailOpen", color: "var(--neon-green)" },
-  { label: "Доход от рассылок", value: "₽ 842K", delta: "+21%", icon: "TrendingUp", color: "var(--neon-pink)" },
+  { label: "Отправлено писем", value: "1,2 млн", delta: "+8%", icon: "Send", color: "var(--neon-cyan)" },
+  { label: "Средняя открываемость", value: "27,4%", delta: "+3,1%", icon: "MailOpen", color: "var(--neon-green)" },
+  { label: "Доход от рассылок", value: "₽ 842 тыс.", delta: "+21%", icon: "TrendingUp", color: "var(--neon-pink)" },
 ];
 
 export const mockCampaigns = [
@@ -64,22 +64,22 @@ export const integrations = [
   { name: "SendGrid", icon: "📤", status: "disconnected", desc: "SMTP отправка" },
   { name: "Mailgun", icon: "🚀", status: "disconnected", desc: "Email API" },
   { name: "Telegram Bot", icon: "✈️", status: "connected", desc: "Уведомления" },
-  { name: "Webhook", icon: "⚡", status: "disconnected", desc: "Кастомные события" },
+  { name: "Веб-хуки", icon: "⚡", status: "disconnected", desc: "Свои события" },
 ];
 
 export const navItems: { id: Page; label: string; icon: string; badge?: string }[] = [
-  { id: "dashboard", label: "Дашборд", icon: "LayoutDashboard" },
+  { id: "dashboard", label: "Главная", icon: "LayoutDashboard" },
   { id: "campaigns", label: "Кампании", icon: "Mail" },
   { id: "contacts", label: "Контакты", icon: "Users" },
-  { id: "editor", label: "Редактор писем", icon: "PenSquare", badge: "AI" },
-  { id: "automation", label: "Автоматизации", icon: "Workflow", badge: "PRO" },
-  { id: "omnichannel", label: "Omnichannel", icon: "Network", badge: "NEW" },
-  { id: "predict", label: "Predictive AI", icon: "Sparkles", badge: "AI" },
+  { id: "editor", label: "Редактор писем", icon: "PenSquare", badge: "ИИ" },
+  { id: "automation", label: "Автоматизации", icon: "Workflow", badge: "ПРО" },
+  { id: "omnichannel", label: "Мультиканал", icon: "Network", badge: "НОВОЕ" },
+  { id: "predict", label: "ИИ-прогноз", icon: "Sparkles", badge: "ИИ" },
   { id: "analytics", label: "Аналитика", icon: "BarChart2" },
   { id: "integrations", label: "Интеграции", icon: "Puzzle" },
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },
   { id: "pricing", label: "Тарифы", icon: "Crown", badge: "−30%" },
-  { id: "api", label: "API", icon: "Code2" },
-  { id: "security", label: "Безопасность", icon: "ShieldCheck", badge: "ADM" },
+  { id: "api", label: "Программный интерфейс", icon: "Code2" },
+  { id: "security", label: "Безопасность", icon: "ShieldCheck", badge: "АДМ" },
   { id: "settings", label: "Настройки", icon: "Settings" },
 ];

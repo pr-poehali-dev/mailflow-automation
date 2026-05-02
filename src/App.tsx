@@ -33,13 +33,13 @@ const PAGE_LABELS: Partial<Record<Page, string>> = {
   contacts: "базы контактов",
   editor: "редактора писем",
   automation: "автоматизаций",
-  omnichannel: "omnichannel-каналов",
-  predict: "Predictive AI",
+  omnichannel: "мультиканальных рассылок",
+  predict: "ИИ-прогноза",
   analytics: "аналитики",
   integrations: "интеграций",
   templates: "шаблонов",
   settings: "настроек",
-  api: "API-ключей",
+  api: "ключей программного интерфейса",
   security: "панели безопасности",
 };
 

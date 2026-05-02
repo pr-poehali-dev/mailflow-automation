@@ -16,60 +16,60 @@ interface Channel {
 
 const CHANNELS: Channel[] = [
   {
-    id: "email", name: "Email", icon: "Mail", color: "#8b5cf6",
+    id: "email", name: "Эл. почта", icon: "Mail", color: "#8b5cf6",
     desc: "Свой SMTP-движок · DKIM · прогрев домена",
     connected: true, sent_today: 8412, delivery_rate: 98.4,
     cost_per_msg: "~₽0.10",
     features: ["HTML-шаблоны", "Переменные", "A/B-тесты", "Открытия и клики"],
   },
   {
-    id: "sms", name: "SMS", icon: "Smartphone", color: "#10b981",
+    id: "sms", name: "СМС", icon: "Smartphone", color: "#10b981",
     desc: "Прямые шлюзы МТС, МегаФон, Билайн, Tele2",
     connected: false, sent_today: 0, delivery_rate: 99.7,
     cost_per_msg: "~₽3.50",
-    features: ["Транзакционные", "Рекламные", "Альфа-имя отправителя", "OTP-коды"],
+    features: ["Транзакционные", "Рекламные", "Буквенное имя отправителя", "Одноразовые коды"],
   },
   {
-    id: "telegram", name: "Telegram", icon: "Send", color: "#06b6d4",
+    id: "telegram", name: "Телеграм", icon: "Send", color: "#06b6d4",
     desc: "Бот + рассылки в каналы и личные чаты",
     connected: false, sent_today: 0, delivery_rate: 100,
     cost_per_msg: "Бесплатно",
-    features: ["Бот для подписки", "Кнопки и инлайн", "Фото и видео", "Платежи"],
+    features: ["Бот для подписки", "Кнопки и встроенные меню", "Фото и видео", "Платежи"],
   },
   {
-    id: "whatsapp", name: "WhatsApp Business", icon: "MessageCircle", color: "#16a34a",
-    desc: "Через официальный API Meta · только в РФ",
+    id: "whatsapp", name: "Ватсап для бизнеса", icon: "MessageCircle", color: "#16a34a",
+    desc: "Через официальный интерфейс Meta · только в РФ",
     connected: false, sent_today: 0, delivery_rate: 99.2,
     cost_per_msg: "~₽5.20",
     features: ["Шаблоны Meta", "Каталог товаров", "Чат-бот", "Платежи"],
   },
   {
-    id: "push", name: "Web Push", icon: "Bell", color: "#f59e0b",
+    id: "push", name: "Браузерные уведомления", icon: "Bell", color: "#f59e0b",
     desc: "Уведомления в браузере для подписчиков сайта",
     connected: false, sent_today: 0, delivery_rate: 87.3,
     cost_per_msg: "Бесплатно",
-    features: ["Подписка на сайте", "Сегментация", "Картинки в пушах", "Расписание"],
+    features: ["Подписка на сайте", "Сегментация", "Картинки в уведомлениях", "Расписание"],
   },
   {
-    id: "mobile", name: "Mobile Push", icon: "Smartphone", color: "#ec4899",
-    desc: "Через Firebase для iOS и Android приложений",
+    id: "mobile", name: "Мобильные уведомления", icon: "Smartphone", color: "#ec4899",
+    desc: "Через Firebase для приложений iOS и Android",
     connected: false, sent_today: 0, delivery_rate: 95.1,
     cost_per_msg: "Бесплатно",
-    features: ["FCM iOS/Android", "Rich-пуши", "Глубокие ссылки", "Тихие уведомления"],
+    features: ["FCM для iOS/Android", "С картинками и кнопками", "Глубокие ссылки", "Тихие уведомления"],
   },
   {
-    id: "viber", name: "Viber Business", icon: "MessageSquare", color: "#7c3aed",
+    id: "viber", name: "Вайбер для бизнеса", icon: "MessageSquare", color: "#7c3aed",
     desc: "Бизнес-сообщения через официальные провайдеры",
     connected: false, sent_today: 0, delivery_rate: 96.8,
     cost_per_msg: "~₽2.10",
     features: ["Брендированные сообщения", "Кнопки", "Геолокация", "Каскадные сценарии"],
   },
   {
-    id: "vk", name: "VK Сообщения", icon: "Hash", color: "#0891b2",
+    id: "vk", name: "ВК Сообщения", icon: "Hash", color: "#0891b2",
     desc: "Рассылки подписчикам сообществ ВКонтакте",
     connected: false, sent_today: 0, delivery_rate: 99.0,
     cost_per_msg: "Бесплатно",
-    features: ["Сообщества", "Карусели", "Платежи VK Pay", "Mini Apps"],
+    features: ["Сообщества", "Карусели", "Платежи VK Pay", "Мини-приложения"],
   },
 ];
 
@@ -91,9 +91,9 @@ export function OmnichannelPage() {
       <div className="fade-in-up flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            Omnichannel
+            Мультиканальные рассылки
             <span className="text-xs px-2 py-0.5 rounded-full text-white"
-              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>NEW</span>
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>НОВОЕ</span>
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">8 каналов в одной платформе · единая статистика · каскадная отправка</p>
         </div>
@@ -126,7 +126,7 @@ export function OmnichannelPage() {
               <Icon name="GitBranch" size={16} style={{ color: "#8b5cf6" }} />
               Каскадная отправка
             </h2>
-            <p className="text-xs text-muted-foreground">Не открыл email через 2 часа? Отправим SMS. Не ответил? Telegram. Экономия + конверсия.</p>
+            <p className="text-xs text-muted-foreground">Не открыл письмо за 2 часа? Отправим СМС. Не ответил? Телеграм. Экономия и рост откликов.</p>
           </div>
           <button className="text-xs px-4 py-2 rounded-xl font-semibold text-white flex items-center gap-1.5"
             style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>

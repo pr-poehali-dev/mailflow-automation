@@ -152,8 +152,8 @@ export function Campaigns() {
                 <th className="text-left px-5 py-3">Кампания</th>
                 <th className="text-left px-5 py-3">Статус</th>
                 <th className="text-left px-5 py-3 hidden md:table-cell">Отправлено</th>
-                <th className="text-left px-5 py-3">Open Rate</th>
-                <th className="text-left px-5 py-3 hidden lg:table-cell">CTR</th>
+                <th className="text-left px-5 py-3">Открываемость</th>
+                <th className="text-left px-5 py-3 hidden lg:table-cell">Кликабельность</th>
                 <th className="text-left px-5 py-3 hidden md:table-cell">Дата</th>
                 <th className="px-5 py-3"></th>
               </tr>

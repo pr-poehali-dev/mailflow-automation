@@ -157,9 +157,9 @@ export function ApiPage() {
   };
 
   const tabs = [
-    { id: "keys", label: "API-ключи", icon: "Key" },
+    { id: "keys", label: "Ключи доступа", icon: "Key" },
     { id: "docs", label: "Документация", icon: "BookOpen" },
-    { id: "log", label: "Лог событий", icon: "Activity" },
+    { id: "log", label: "Журнал событий", icon: "Activity" },
     { id: "triggers", label: "Триггеры", icon: "Zap" },
   ] as const;
 
@@ -168,13 +168,13 @@ export function ApiPage() {
       {/* Header */}
       <div className="fade-in-up flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">MAIL-KA API</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Интеграция с вашими системами через REST API</p>
+          <h1 className="text-2xl font-bold">Программный интерфейс MAIL-KA</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Интеграция с вашими системами по протоколу REST</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono-custom"
           style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", color: "#4ade80" }}>
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
-          API активен
+          Интерфейс доступен
         </div>
       </div>
 
