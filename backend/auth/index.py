@@ -12,8 +12,15 @@ import hashlib
 import secrets
 import base64
 from datetime import datetime, timedelta
+from urllib.request import Request, urlopen
 
 import psycopg2
+
+
+SEND_EMAIL_URL = "https://functions.poehali.dev/9861b492-d3a2-48ef-9407-3b07e1d55181"
+APP_BASE_URL = os.environ.get('APP_BASE_URL', 'https://preview--mail-ka.poehali.dev')
+VERIFICATION_TTL_HOURS = 24
+RESEND_COOLDOWN_SECONDS = 60
 
 
 SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 'public')
@@ -32,6 +39,8 @@ RATE_LIMITS = {
     'login_ip':       (10, 60),    # 10 попыток / 60 сек / IP
     'login_email':    (5,  300),   # 5 попыток / 5 мин / email
     'register_ip':    (5,  600),   # 5 регистраций / 10 мин / IP
+    'verify_resend':  (5,  3600),  # 5 повторных писем / час / user
+    'verify_check':   (20, 300),   # 20 попыток ввода токена / 5 мин / IP
 }
 
 CORS_HEADERS = {
@@ -185,6 +194,66 @@ def auth_required(cur, event: dict) -> tuple[int | None, dict | None]:
     return row[0], None
 
 
+# ============= EMAIL VERIFICATION =============
+
+def send_verification_email(to_email: str, name: str, token: str) -> bool:
+    """Отправляем письмо со ссылкой подтверждения. Молча игнорируем ошибки сети/SMTP."""
+    link = f"{APP_BASE_URL.rstrip('/')}/?verify_email={token}"
+    display_name = (name or '').strip() or 'друг'
+    subject = 'Подтвердите email — MAIL-KA'
+    text = (
+        f'Привет, {display_name}!\n\n'
+        f'Вы зарегистрировались в MAIL-KA. Чтобы активировать аккаунт и получить доступ '
+        f'ко всем разделам, подтвердите email — просто перейдите по ссылке ниже:\n\n'
+        f'{link}\n\n'
+        f'Ссылка действует 24 часа. Если вы не регистрировались — просто проигнорируйте письмо.\n\n'
+        f'— Команда MAIL-KA'
+    )
+    payload = json.dumps({
+        'to': to_email,
+        'subject': subject,
+        'text': text,
+        'from_name': 'MAIL-KA'
+    }).encode('utf-8')
+
+    request = Request(
+        SEND_EMAIL_URL,
+        data=payload,
+        headers={'Content-Type': 'application/json'},
+        method='POST'
+    )
+    try:
+        with urlopen(request, timeout=10) as response:
+            response.read()
+        return True
+    except Exception:
+        return False
+
+
+def create_and_send_verification(cur, user_id: int, email: str, name: str) -> bool:
+    """Генерируем токен, сохраняем хэш в БД, шлём письмо."""
+    token = secrets.token_urlsafe(48)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    expires = datetime.utcnow() + timedelta(hours=VERIFICATION_TTL_HOURS)
+
+    # Инвалидируем старые неиспользованные токены этого пользователя
+    cur.execute(
+        f"UPDATE {S}email_verifications SET used_at = NOW() "
+        f"WHERE user_id = %s AND used_at IS NULL",
+        (user_id,)
+    )
+    cur.execute(
+        f"INSERT INTO {S}email_verifications (user_id, token_hash, email, expires_at) "
+        f"VALUES (%s, %s, %s, %s)",
+        (user_id, token_hash, email, expires.isoformat())
+    )
+    cur.execute(
+        f"UPDATE {S}users SET verification_sent_at = NOW() WHERE id = %s",
+        (user_id,)
+    )
+    return send_verification_email(email, name, token)
+
+
 # ============= HANDLERS =============
 
 def action_register(event: dict, cur, conn) -> dict:
@@ -233,6 +302,13 @@ def action_register(event: dict, cur, conn) -> dict:
         (user_id, token_hash, csrf, ua, ip, expires.isoformat())
     )
     audit(cur, 'register', True, user_id=user_id, email=email, ip=ip, ua=ua)
+
+    # Отправляем письмо с подтверждением email (не критично, ошибки игнорируем)
+    try:
+        create_and_send_verification(cur, user_id, email, name)
+    except Exception:
+        pass
+
     conn.commit()
 
     return json_response(200, {
@@ -240,7 +316,7 @@ def action_register(event: dict, cur, conn) -> dict:
         'csrf_token': csrf,
         'user': {
             'id': user[0], 'email': user[1], 'name': user[2],
-            'role': user[3], 'created_at': str(user[4])
+            'role': user[3], 'is_email_verified': False, 'created_at': str(user[4])
         }
     })
 
@@ -373,6 +449,92 @@ def action_me(event: dict, cur, conn) -> dict:
     })
 
 
+def action_verify_email(event: dict, cur, conn) -> dict:
+    """Подтверждение email по токену из письма. Не требует авторизации."""
+    body = json.loads(event.get('body') or '{}')
+    token = (body.get('token') or '').strip()
+    ip = get_client_ip(event)
+
+    if not rate_limit_check(cur, ip or 'unknown', 'verify_check'):
+        conn.commit()
+        return json_response(429, {'error': 'Слишком много попыток. Попробуйте позже.'})
+
+    if not token or len(token) < 32 or len(token) > 128:
+        return json_response(400, {'error': 'Некорректный токен'})
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    cur.execute(
+        f"SELECT id, user_id, expires_at, used_at FROM {S}email_verifications "
+        f"WHERE token_hash = %s",
+        (token_hash,)
+    )
+    row = cur.fetchone()
+    if not row:
+        audit(cur, 'verify_email', False, ip=ip, details='token_not_found')
+        conn.commit()
+        return json_response(400, {'error': 'Ссылка недействительна'})
+
+    ver_id, user_id, expires_at, used_at = row
+    if used_at is not None:
+        audit(cur, 'verify_email', False, user_id=user_id, ip=ip, details='already_used')
+        conn.commit()
+        return json_response(400, {'error': 'Ссылка уже использована'})
+    if expires_at < datetime.utcnow():
+        audit(cur, 'verify_email', False, user_id=user_id, ip=ip, details='expired')
+        conn.commit()
+        return json_response(400, {'error': 'Ссылка истекла. Запросите письмо повторно.'})
+
+    cur.execute(
+        f"UPDATE {S}email_verifications SET used_at = NOW() WHERE id = %s",
+        (ver_id,)
+    )
+    cur.execute(
+        f"UPDATE {S}users SET is_email_verified = TRUE, updated_at = NOW() WHERE id = %s",
+        (user_id,)
+    )
+    audit(cur, 'verify_email', True, user_id=user_id, ip=ip)
+    conn.commit()
+    return json_response(200, {'ok': True})
+
+
+def action_resend_verification(event: dict, cur, conn) -> dict:
+    """Повторная отправка письма с подтверждением (только авторизованным)."""
+    user_id, err = auth_required(cur, event)
+    if err:
+        return err
+    ip = get_client_ip(event)
+
+    if not rate_limit_check(cur, str(user_id), 'verify_resend'):
+        conn.commit()
+        return json_response(429, {'error': 'Слишком часто. Подождите минуту.'})
+
+    cur.execute(
+        f"SELECT email, name, is_email_verified, verification_sent_at "
+        f"FROM {S}users WHERE id = %s",
+        (user_id,)
+    )
+    row = cur.fetchone()
+    if not row:
+        return json_response(404, {'error': 'Пользователь не найден'})
+
+    email, name, is_verified, sent_at = row
+    if is_verified:
+        return json_response(400, {'error': 'Email уже подтверждён'})
+
+    # Cooldown между отправками
+    if sent_at and (datetime.utcnow() - sent_at).total_seconds() < RESEND_COOLDOWN_SECONDS:
+        wait = RESEND_COOLDOWN_SECONDS - int((datetime.utcnow() - sent_at).total_seconds())
+        return json_response(429, {'error': f'Подождите {wait} сек перед повторной отправкой'})
+
+    sent = create_and_send_verification(cur, user_id, email, name)
+    audit(cur, 'verify_resend', sent, user_id=user_id, email=email, ip=ip)
+    conn.commit()
+
+    if not sent:
+        return json_response(500, {'error': 'Не удалось отправить письмо. Проверьте настройки SMTP.'})
+    return json_response(200, {'ok': True})
+
+
 def action_change_password(event: dict, cur, conn) -> dict:
     user_id, err = auth_required(cur, event)
     if err:
@@ -434,6 +596,10 @@ def handler(event, context):
             return action_me(event, cur, conn)
         if action == 'change-password' and method == 'POST':
             return action_change_password(event, cur, conn)
+        if action == 'verify-email' and method == 'POST':
+            return action_verify_email(event, cur, conn)
+        if action == 'resend-verification' and method == 'POST':
+            return action_resend_verification(event, cur, conn)
 
         return json_response(404, {'error': 'Неизвестное действие'})
     except json.JSONDecodeError:

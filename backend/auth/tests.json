@@ -39,6 +39,33 @@
       "expectedStatus": 401,
       "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify email: missing token",
+      "method": "POST",
+      "path": "/?action=verify-email",
+      "body": {"token": ""},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify email: invalid token",
+      "method": "POST",
+      "path": "/?action=verify-email",
+      "body": {"token": "abcdefghijklmnopqrstuvwxyz1234567890XYZ"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Resend verification without auth",
+      "method": "POST",
+      "path": "/?action=resend-verification",
+      "body": {},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
     }
   ]
 }

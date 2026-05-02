@@ -22,6 +22,9 @@ interface AuthCtx {
   register: (email: string, password: string, name: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   authFetch: (url: string, init?: RequestInit) => Promise<Response>;
+  verifyEmail: (token: string) => Promise<{ ok: boolean; error?: string }>;
+  resendVerification: () => Promise<{ ok: boolean; error?: string }>;
+  refreshMe: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -142,8 +145,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const refreshMe = useCallback(async () => {
+    const u = await fetchMe();
+    if (u) setUser(u);
+  }, [fetchMe]);
+
+  const verifyEmail = useCallback(async (token: string) => {
+    try {
+      const res = await fetch(`${AUTH_URL}?action=verify-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, error: data.error || "Не удалось подтвердить" };
+      // Если пользователь авторизован — обновим его данные
+      await refreshMe();
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Сетевая ошибка" };
+    }
+  }, [refreshMe]);
+
+  const resendVerification = useCallback(async () => {
+    const t = getToken();
+    if (!t) return { ok: false, error: "Нужно войти в аккаунт" };
+    try {
+      const res = await fetch(`${AUTH_URL}?action=resend-verification`, {
+        method: "POST",
+        headers: { "X-Auth-Token": t, "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, error: data.error || "Не удалось отправить" };
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Сетевая ошибка" };
+    }
+  }, []);
+
   return (
-    <Ctx.Provider value={{ user, loading, initialized, login, register, logout, authFetch }}>
+    <Ctx.Provider value={{
+      user, loading, initialized, login, register, logout, authFetch,
+      verifyEmail, resendVerification, refreshMe,
+    }}>
       {children}
     </Ctx.Provider>
   );

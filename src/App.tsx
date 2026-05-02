@@ -5,6 +5,8 @@ import Seo from "@/components/Seo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PaymentSuccessPage from "@/components/pages/PaymentSuccessPage";
 import AuthModal from "@/components/auth/AuthModal";
+import EmailVerifyBanner from "@/components/auth/EmailVerifyBanner";
+import EmailVerifyResult from "@/components/auth/EmailVerifyResult";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Dashboard,
@@ -44,15 +46,24 @@ export default function App() {
   const [page, setPage] = useState<Page>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [verifyToken, setVerifyToken] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState<string | undefined>();
   const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
-  // Если ЮKassa вернула пользователя с ?payment=success — показываем экран благодарности
+  // Обработка возврата с ЮKassa и ссылки подтверждения email
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
       setPaymentSuccess(true);
+    }
+    const vt = params.get("verify_email");
+    if (vt) {
+      setVerifyToken(vt);
+      // Чистим URL чтобы при F5 не повторяться
+      const url = new URL(window.location.href);
+      url.searchParams.delete("verify_email");
+      window.history.replaceState({}, "", url.toString());
     }
   }, []);
 
@@ -113,10 +124,13 @@ export default function App() {
         <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full opacity-25 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent)" }} />
         <div className="relative z-10">
-          {paymentSuccess ? (
+          {verifyToken ? (
+            <EmailVerifyResult token={verifyToken} onClose={() => setVerifyToken(null)} />
+          ) : paymentSuccess ? (
             <PaymentSuccessPage setPage={(p) => { setPaymentSuccess(false); guardedSetPage(p); }} />
           ) : (
             <>
+              <EmailVerifyBanner />
               <div className="px-6 pt-4">
                 <Breadcrumbs page={page} setPage={guardedSetPage} />
               </div>
