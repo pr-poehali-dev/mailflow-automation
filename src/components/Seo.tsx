@@ -73,6 +73,11 @@ const SEO_BY_PAGE: Record<Page, SeoMeta> = {
     description: "Полнофункциональный REST API: контакты, кампании, события, webhooks. SDK для Python, Node.js, PHP. До 100 запросов/сек.",
     keywords: "email api, rest api рассылки, webhook email, api для маркетологов",
   },
+  security: {
+    title: "Безопасность · MAIL-KA — аудит входов и защита аккаунтов",
+    description: "Журнал событий аутентификации, заблокированные аккаунты, подозрительные IP, активные сессии и rate-limits. Защита от перебора паролей и спам-ботов.",
+    keywords: "безопасность аккаунта, аудит входов, защита от ботов, заблокированные ip",
+  },
 };
 
 const BASE_URL = "https://mail-ka.ru";

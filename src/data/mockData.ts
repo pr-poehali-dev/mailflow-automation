@@ -11,7 +11,8 @@ export type Page =
   | "templates"
   | "pricing"
   | "settings"
-  | "api";
+  | "api"
+  | "security";
 
 export const mockStats = [
   { label: "Контактов", value: "48 291", delta: "+12%", icon: "Users", color: "var(--neon-purple)" },
@@ -79,5 +80,6 @@ export const navItems: { id: Page; label: string; icon: string; badge?: string }
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },
   { id: "pricing", label: "Тарифы", icon: "Crown", badge: "−30%" },
   { id: "api", label: "API", icon: "Code2" },
+  { id: "security", label: "Безопасность", icon: "ShieldCheck", badge: "ADM" },
   { id: "settings", label: "Настройки", icon: "Settings" },
 ];

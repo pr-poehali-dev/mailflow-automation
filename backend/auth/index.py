@@ -566,6 +566,166 @@ def action_change_password(event: dict, cur, conn) -> dict:
     return json_response(200, {'ok': True})
 
 
+def action_security_stats(event: dict, cur, conn) -> dict:
+    """Сводная статистика безопасности — только для админов."""
+    user_id, err = auth_required(cur, event)
+    if err:
+        return err
+
+    # Проверяем роль
+    cur.execute(f"SELECT role FROM {S}users WHERE id = %s", (user_id,))
+    row = cur.fetchone()
+    if not row or row[0] != 'admin':
+        return json_response(403, {'error': 'Доступ только для администраторов'})
+
+    qs = event.get('queryStringParameters') or {}
+    period = (qs.get('period') or '24h').lower()
+    intervals = {'24h': '24 hours', '7d': '7 days', '30d': '30 days'}
+    interval = intervals.get(period, '24 hours')
+
+    # Сводные счётчики
+    cur.execute(
+        f"SELECT event_type, success, COUNT(*) FROM {S}auth_audit_log "
+        f"WHERE created_at > NOW() - INTERVAL '{interval}' "
+        f"GROUP BY event_type, success"
+    )
+    rows = cur.fetchall()
+    counters = {
+        'login_success': 0, 'login_failed': 0,
+        'register_success': 0, 'register_failed': 0,
+        'logout': 0, 'verify_success': 0, 'verify_failed': 0,
+        'password_changes': 0,
+    }
+    for ev_type, success, cnt in rows:
+        if ev_type == 'login':
+            counters['login_success' if success else 'login_failed'] += cnt
+        elif ev_type == 'register':
+            counters['register_success' if success else 'register_failed'] += cnt
+        elif ev_type == 'logout':
+            counters['logout'] += cnt
+        elif ev_type == 'verify_email':
+            counters['verify_success' if success else 'verify_failed'] += cnt
+        elif ev_type == 'change_password':
+            counters['password_changes'] += cnt
+
+    # Заблокированные пользователи (locked_until в будущем)
+    cur.execute(
+        f"SELECT id, email, failed_attempts, locked_until "
+        f"FROM {S}users WHERE locked_until IS NOT NULL AND locked_until > NOW() "
+        f"ORDER BY locked_until DESC LIMIT 20"
+    )
+    locked = [
+        {'id': r[0], 'email': r[1], 'failed_attempts': r[2],
+         'locked_until': str(r[3])}
+        for r in cur.fetchall()
+    ]
+
+    # Топ IP по неудачным попыткам входа
+    cur.execute(
+        f"SELECT ip_address, COUNT(*) as attempts, MAX(created_at) as last_seen "
+        f"FROM {S}auth_audit_log "
+        f"WHERE event_type IN ('login','register') AND success = FALSE "
+        f"AND created_at > NOW() - INTERVAL '{interval}' AND ip_address IS NOT NULL "
+        f"GROUP BY ip_address HAVING COUNT(*) >= 3 "
+        f"ORDER BY attempts DESC LIMIT 15"
+    )
+    suspicious_ips = [
+        {'ip': r[0], 'attempts': r[1], 'last_seen': str(r[2])}
+        for r in cur.fetchall()
+    ]
+
+    # Топ email-ов по неудачным попыткам
+    cur.execute(
+        f"SELECT email, COUNT(*) as attempts, MAX(created_at) as last_seen "
+        f"FROM {S}auth_audit_log "
+        f"WHERE event_type = 'login' AND success = FALSE "
+        f"AND created_at > NOW() - INTERVAL '{interval}' AND email IS NOT NULL "
+        f"GROUP BY email HAVING COUNT(*) >= 3 "
+        f"ORDER BY attempts DESC LIMIT 15"
+    )
+    targeted_emails = [
+        {'email': r[0], 'attempts': r[1], 'last_seen': str(r[2])}
+        for r in cur.fetchall()
+    ]
+
+    # Активные rate-limit бакеты (приближается к лимиту)
+    cur.execute(
+        f"SELECT bucket_key, action, COUNT(*) as hits "
+        f"FROM {S}rate_limits "
+        f"WHERE created_at > NOW() - INTERVAL '1 hour' "
+        f"GROUP BY bucket_key, action "
+        f"ORDER BY hits DESC LIMIT 20"
+    )
+    active_limits = [
+        {'bucket': r[0], 'action': r[1], 'hits': r[2]}
+        for r in cur.fetchall()
+    ]
+
+    # Последние 50 событий
+    cur.execute(
+        f"SELECT event_type, email, ip_address, success, details, created_at "
+        f"FROM {S}auth_audit_log "
+        f"ORDER BY created_at DESC LIMIT 50"
+    )
+    recent_events = [
+        {'event': r[0], 'email': r[1], 'ip': r[2],
+         'success': r[3], 'details': r[4], 'created_at': str(r[5])}
+        for r in cur.fetchall()
+    ]
+
+    # Общая инфа по юзерам
+    cur.execute(f"SELECT COUNT(*) FROM {S}users")
+    total_users = cur.fetchone()[0]
+    cur.execute(f"SELECT COUNT(*) FROM {S}users WHERE is_email_verified = TRUE")
+    verified_users = cur.fetchone()[0]
+    cur.execute(f"SELECT COUNT(*) FROM {S}users WHERE last_login_at > NOW() - INTERVAL '{interval}'")
+    active_users = cur.fetchone()[0]
+    cur.execute(f"SELECT COUNT(*) FROM {S}user_sessions WHERE revoked_at IS NULL AND expires_at > NOW()")
+    active_sessions = cur.fetchone()[0]
+
+    return json_response(200, {
+        'period': period,
+        'counters': counters,
+        'users': {
+            'total': total_users,
+            'verified': verified_users,
+            'active': active_users,
+            'active_sessions': active_sessions,
+        },
+        'locked_accounts': locked,
+        'suspicious_ips': suspicious_ips,
+        'targeted_emails': targeted_emails,
+        'active_rate_limits': active_limits,
+        'recent_events': recent_events,
+    })
+
+
+def action_unlock_user(event: dict, cur, conn) -> dict:
+    """Сброс блокировки пользователя — только для админов."""
+    user_id, err = auth_required(cur, event)
+    if err:
+        return err
+    cur.execute(f"SELECT role FROM {S}users WHERE id = %s", (user_id,))
+    row = cur.fetchone()
+    if not row or row[0] != 'admin':
+        return json_response(403, {'error': 'Доступ только для администраторов'})
+
+    body = json.loads(event.get('body') or '{}')
+    target_id = body.get('user_id')
+    if not isinstance(target_id, int):
+        return json_response(400, {'error': 'user_id обязателен'})
+
+    cur.execute(
+        f"UPDATE {S}users SET locked_until = NULL, failed_attempts = 0, updated_at = NOW() "
+        f"WHERE id = %s",
+        (target_id,)
+    )
+    audit(cur, 'admin_unlock', True, user_id=user_id, ip=get_client_ip(event),
+          details=f'unlocked user_id={target_id}')
+    conn.commit()
+    return json_response(200, {'ok': True})
+
+
 # ============= ENTRYPOINT =============
 
 def handler(event, context):
@@ -600,6 +760,10 @@ def handler(event, context):
             return action_verify_email(event, cur, conn)
         if action == 'resend-verification' and method == 'POST':
             return action_resend_verification(event, cur, conn)
+        if action == 'security-stats' and method == 'GET':
+            return action_security_stats(event, cur, conn)
+        if action == 'unlock-user' and method == 'POST':
+            return action_unlock_user(event, cur, conn)
 
         return json_response(404, {'error': 'Неизвестное действие'})
     except json.JSONDecodeError:

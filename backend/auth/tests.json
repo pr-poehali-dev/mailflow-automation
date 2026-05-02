@@ -66,6 +66,23 @@
       "expectedStatus": 401,
       "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Security stats without auth",
+      "method": "GET",
+      "path": "/?action=security-stats",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unlock user without auth",
+      "method": "POST",
+      "path": "/?action=unlock-user",
+      "body": {"user_id": 1},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
     }
   ]
 }

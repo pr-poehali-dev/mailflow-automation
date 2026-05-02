@@ -28,6 +28,7 @@ const PAGE_SECTIONS: Record<Page, Section> = {
   pricing:      { category: "Аккаунт",      label: "Тарифы и оплата",    icon: "Crown" },
   settings:     { category: "Аккаунт",      label: "Настройки",          icon: "Settings" },
   api:          { category: "Подключения",  label: "API для разработчиков", icon: "Code2" },
+  security:     { category: "Аккаунт",      label: "Безопасность",       icon: "ShieldCheck" },
 };
 
 const BASE_URL = "https://mail-ka.ru";

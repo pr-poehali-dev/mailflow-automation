@@ -23,6 +23,7 @@ import AutomationPage from "@/components/pages/AutomationPage";
 import OmnichannelPage from "@/components/pages/OmnichannelPage";
 import PredictPage from "@/components/pages/PredictPage";
 import PricingPage from "@/components/pages/PricingPage";
+import SecurityPage from "@/components/pages/SecurityPage";
 
 // Главная и страница тарифов открыты всем — остальные требуют регистрацию
 const PUBLIC_PAGES: Page[] = ["dashboard", "pricing"];
@@ -39,6 +40,7 @@ const PAGE_LABELS: Partial<Record<Page, string>> = {
   templates: "шаблонов",
   settings: "настроек",
   api: "API-ключей",
+  security: "панели безопасности",
 };
 
 export default function App() {
@@ -104,6 +106,7 @@ export default function App() {
     pricing: <PricingPage />,
     settings: <SettingsPage />,
     api: <ApiPage />,
+    security: <SecurityPage />,
   };
 
   return (
