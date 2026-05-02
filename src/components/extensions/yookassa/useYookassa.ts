@@ -24,6 +24,8 @@ export interface PaymentPayload {
   description?: string;
   returnUrl: string;
   cartItems?: CartItem[];
+  planId?: string;
+  billingPeriod?: "monthly" | "yearly";
 }
 
 export interface PaymentResponse {
@@ -121,6 +123,8 @@ export function useYookassa(options: UseYookassaOptions): UseYookassaReturn {
           description: payload.description || "Оплата заказа",
           return_url: payload.returnUrl,
           cart_items: payload.cartItems || [],
+          plan_id: payload.planId || "",
+          billing_period: payload.billingPeriod || "",
         };
 
         const response = await fetch(apiUrl, {

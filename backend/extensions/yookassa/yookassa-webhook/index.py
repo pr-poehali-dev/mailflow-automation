@@ -17,6 +17,70 @@ HEADERS = {
 }
 
 YOOKASSA_API_URL = "https://api.yookassa.ru/v3/payments"
+SEND_EMAIL_URL = "https://functions.poehali.dev/9861b492-d3a2-48ef-9407-3b07e1d55181"
+
+
+# =============================================================================
+# WELCOME EMAIL
+# =============================================================================
+
+def send_welcome_email(user_email: str, user_name: str, plan_id: str,
+                       billing_period: str, amount: float, order_number: str) -> None:
+    """Send welcome email after successful payment. Errors are silenced."""
+    name = (user_name or '').strip() or 'друг'
+    period_text = '12 месяцев' if billing_period == 'yearly' else '1 месяц'
+    plan_names = {
+        'starter': 'Старт',
+        'business': 'Бизнес',
+        'enterprise': 'Enterprise'
+    }
+    plan_label = plan_names.get(plan_id, plan_id or 'выбранный')
+
+    subject = f'Добро пожаловать в MAIL-KA! Подписка «{plan_label}» активирована'
+
+    text = (
+        f'Привет, {name}!\n\n'
+        f'Спасибо за оплату — мы получили платёж и активировали вашу подписку.\n\n'
+        f'Ваш заказ:\n'
+        f'• Тариф: {plan_label}\n'
+        f'• Период: {period_text}\n'
+        f'• Сумма: {amount:.2f} RUB\n'
+        f'• Номер заказа: {order_number}\n\n'
+        f'Что делать дальше:\n'
+        f'1. Подключите свой SMTP в разделе Настройки\n'
+        f'2. Загрузите базу контактов (CSV или Excel)\n'
+        f'3. Соберите первое письмо в визуальном редакторе\n'
+        f'4. Запустите автоматизацию — Welcome-серию или брошенную корзину\n\n'
+        f'Полезные ссылки:\n'
+        f'• AI-копирайтер: придумает заголовок и текст за 5 секунд\n'
+        f'• Predictive AI: покажет LTV и риск оттока по каждому контакту\n'
+        f'• Omnichannel: добавьте SMS, Telegram и Push в одну воронку\n\n'
+        f'Чек по 54-ФЗ придёт отдельным письмом от ЮKassa в течение 5 минут.\n'
+        f'Закрывающие документы для бухгалтерии — в личном кабинете в разделе «Биллинг».\n\n'
+        f'Если что-то не получается — просто ответьте на это письмо. Мы отвечаем за 2 минуты.\n\n'
+        f'Спасибо, что выбрали MAIL-KA! 🚀\n\n'
+        f'— Команда MAIL-KA'
+    )
+
+    payload = json.dumps({
+        'to': user_email,
+        'subject': subject,
+        'text': text,
+        'from_name': 'MAIL-KA'
+    }).encode('utf-8')
+
+    request = Request(
+        SEND_EMAIL_URL,
+        data=payload,
+        headers={'Content-Type': 'application/json'},
+        method='POST'
+    )
+
+    try:
+        with urlopen(request, timeout=10) as response:
+            response.read()
+    except Exception:
+        pass
 
 
 # =============================================================================
@@ -130,7 +194,9 @@ def handler(event, context):
 
         # Find order by payment_id
         cur.execute(f"""
-            SELECT id, status FROM {S}orders
+            SELECT id, status, user_email, user_name, plan_id,
+                   billing_period, amount, order_number
+            FROM {S}orders
             WHERE yookassa_payment_id = %s
         """, (payment_id,))
 
@@ -141,7 +207,9 @@ def handler(event, context):
             order_id_meta = metadata.get('order_id')
             if order_id_meta:
                 cur.execute(f"""
-                    SELECT id, status FROM {S}orders WHERE id = %s
+                    SELECT id, status, user_email, user_name, plan_id,
+                           billing_period, amount, order_number
+                    FROM {S}orders WHERE id = %s
                 """, (int(order_id_meta),))
                 row = cur.fetchone()
 
@@ -152,7 +220,8 @@ def handler(event, context):
                 'body': json.dumps({'error': 'Order not found'})
             }
 
-        order_id, current_status = row
+        (order_id, current_status, user_email, user_name,
+         plan_id, billing_period, amount, order_number) = row
 
         # Update based on verified payment status
         if payment_status == 'succeeded':
@@ -163,6 +232,20 @@ def handler(event, context):
                     WHERE id = %s
                 """, (now, now, order_id))
                 conn.commit()
+
+                # Отправляем приветственное письмо только при первом переходе в paid
+                if user_email:
+                    try:
+                        send_welcome_email(
+                            user_email=user_email,
+                            user_name=user_name or '',
+                            plan_id=plan_id or '',
+                            billing_period=billing_period or 'monthly',
+                            amount=float(amount or 0),
+                            order_number=order_number or ''
+                        )
+                    except Exception:
+                        pass
 
         elif payment_status == 'canceled':
             if current_status not in ('paid', 'canceled'):

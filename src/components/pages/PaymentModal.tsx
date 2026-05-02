@@ -56,6 +56,8 @@ export function PaymentModal({ open, onClose, planId, planName, planColor, amoun
       userName: name.trim(),
       description,
       returnUrl,
+      planId,
+      billingPeriod: yearly ? "yearly" : "monthly",
       cartItems: [{
         id: planId,
         name: description,

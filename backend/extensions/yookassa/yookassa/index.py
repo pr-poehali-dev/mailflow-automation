@@ -171,6 +171,8 @@ def handler(event, context):
     return_url = data.get('return_url', '').strip()
     description = data.get('description', 'Оплата заказа')
     cart_items = data.get('cart_items', [])
+    plan_id = (data.get('plan_id') or '').strip()
+    billing_period = (data.get('billing_period') or '').strip()
 
     if amount < MIN_AMOUNT or amount > MAX_AMOUNT:
         return {
@@ -223,13 +225,22 @@ def handler(event, context):
         # Generate order number
         order_number = f"YK-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
 
+        # Auto-detect plan_id / billing_period from cart_items if not provided
+        if not plan_id and cart_items:
+            plan_id = str(cart_items[0].get('id', ''))[:50]
+        if not billing_period:
+            # Heuristic: if total >= monthly_price * 6, it's yearly
+            billing_period = 'yearly' if amount >= 5000 else 'monthly'
+
         # Create order in DB
         cur.execute(f"""
             INSERT INTO {S}orders
-            (order_number, user_name, user_email, user_phone, amount, status, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s)
+            (order_number, user_name, user_email, user_phone, amount, status,
+             plan_id, billing_period, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s)
             RETURNING id
-        """, (order_number, user_name, user_email, user_phone, amount, now, now))
+        """, (order_number, user_name, user_email, user_phone, amount,
+              plan_id, billing_period, now, now))
 
         order_id = cur.fetchone()[0]
 
