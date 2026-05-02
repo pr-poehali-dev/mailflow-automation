@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Page } from "@/data/mockData";
 import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/Footer";
 import Seo from "@/components/Seo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PaymentSuccessPage from "@/components/pages/PaymentSuccessPage";
@@ -138,6 +139,7 @@ export default function App() {
                 <Breadcrumbs page={page} setPage={guardedSetPage} />
               </div>
               {pageMap[page]}
+              <Footer setPage={guardedSetPage} />
             </>
           )}
         </div>
