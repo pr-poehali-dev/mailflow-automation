@@ -8,6 +8,7 @@ import PaymentSuccessPage from "@/components/pages/PaymentSuccessPage";
 import AuthModal from "@/components/auth/AuthModal";
 import EmailVerifyBanner from "@/components/auth/EmailVerifyBanner";
 import EmailVerifyResult from "@/components/auth/EmailVerifyResult";
+import CommandPalette from "@/components/search/CommandPalette";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Dashboard,
@@ -53,6 +54,19 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authReason, setAuthReason] = useState<string | undefined>();
   const [authMode, setAuthMode] = useState<"login" | "register">("register");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Глобальный хоткей Cmd+K / Ctrl+K — открыть поиск
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Обработка возврата с ЮKassa и ссылки подтверждения email
   useEffect(() => {
@@ -119,6 +133,7 @@ export default function App() {
         setCollapsed={setCollapsed}
         onLoginClick={() => { setAuthMode("login"); setAuthReason(undefined); setAuthOpen(true); }}
         onRegisterClick={() => { setAuthMode("register"); setAuthReason(undefined); setAuthOpen(true); }}
+        onSearchClick={() => setPaletteOpen(true)}
       />
 
       <main className="flex-1 overflow-y-auto relative" key={page}>
@@ -150,6 +165,12 @@ export default function App() {
         onClose={() => setAuthOpen(false)}
         initialMode={authMode}
         reason={authReason}
+      />
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        setPage={guardedSetPage}
       />
     </div>
   );

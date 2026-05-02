@@ -9,14 +9,16 @@ interface SidebarProps {
   setCollapsed: (v: boolean) => void;
   onLoginClick?: () => void;
   onRegisterClick?: () => void;
+  onSearchClick?: () => void;
 }
 
 const PUBLIC_PAGES: Page[] = ["dashboard", "pricing"];
 
 export default function Sidebar({
-  page, setPage, collapsed, setCollapsed, onLoginClick, onRegisterClick,
+  page, setPage, collapsed, setCollapsed, onLoginClick, onRegisterClick, onSearchClick,
 }: SidebarProps) {
   const { user, logout } = useAuth();
+  const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
 
   return (
     <aside
@@ -44,8 +46,36 @@ export default function Sidebar({
         </button>
       </div>
 
+      {/* Search */}
+      {onSearchClick && (
+        <div className="px-2 pt-3">
+          <button
+            onClick={onSearchClick}
+            title={collapsed ? "Поиск (Ctrl+K)" : undefined}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all hover:bg-white/40 ${
+              collapsed ? "justify-center" : ""
+            }`}
+            style={{
+              background: "rgba(139,92,246,0.06)",
+              border: "1px solid rgba(139,92,246,0.15)",
+              color: "#7c3aed",
+            }}>
+            <Icon name="Search" size={14} className="flex-shrink-0" />
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-left text-muted-foreground">Поиск...</span>
+                <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded"
+                  style={{ background: "rgba(139,92,246,0.15)", color: "#7c3aed" }}>
+                  {isMac ? "⌘K" : "Ctrl K"}
+                </kbd>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Nav */}
-      <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const active = page === item.id;
           const locked = !user && !PUBLIC_PAGES.includes(item.id);
