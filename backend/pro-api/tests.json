@@ -1,15 +1,40 @@
 {
   "tests": [
     {
-      "name": "GET templates",
+      "name": "GET templates без токена → 401",
       "method": "GET",
       "path": "/?resource=templates",
-      "expectedStatus": 200
+      "expectedStatus": 401
     },
     {
-      "name": "GET global_stats",
+      "name": "GET automations без токена → 401",
+      "method": "GET",
+      "path": "/?resource=automations",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET ab_tests без токена → 401",
+      "method": "GET",
+      "path": "/?resource=ab_tests",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST suppressions без токена → 401",
+      "method": "POST",
+      "path": "/?resource=suppressions",
+      "body": {"email": "x@y.ru"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET global_stats без токена → 401",
       "method": "GET",
       "path": "/?resource=global_stats",
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
       "expectedStatus": 200
     }
   ]

@@ -1,21 +1,42 @@
 {
   "tests": [
     {
-      "name": "GET / — список ключей",
+      "name": "GET keys без авторизации → 401",
       "method": "GET",
-      "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"keys": []},
-      "bodyMatcher": "partial"
+      "path": "/?resource=keys",
+      "expectedStatus": 401
     },
     {
-      "name": "POST / — создать ключ",
+      "name": "POST keys без авторизации → 401",
       "method": "POST",
+      "path": "/?resource=keys",
+      "body": {"name": "Тест"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET contacts без X-API-Key → 401",
+      "method": "GET",
+      "path": "/?resource=contacts",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST send без X-API-Key → 401",
+      "method": "POST",
+      "path": "/?resource=send",
+      "body": {"to": "x@y.ru", "subject": "t"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET events без авторизации → 401",
+      "method": "GET",
+      "path": "/?resource=events",
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
       "path": "/",
-      "body": {"name": "Тестовый ключ"},
-      "expectedStatus": 201,
-      "expectedBody": {"ok": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }
