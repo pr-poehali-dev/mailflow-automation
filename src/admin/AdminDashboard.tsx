@@ -49,7 +49,22 @@ export default function AdminDashboard({ user, onLogout }: Props) {
 
   const handleLogout = async () => {
     await adminLogout();
+    try {
+      sessionStorage.removeItem("mk_admin_mode");
+    } catch {
+      /* ignore */
+    }
     onLogout();
+    window.location.href = "/";
+  };
+
+  const exitToSite = () => {
+    try {
+      sessionStorage.removeItem("mk_admin_mode");
+    } catch {
+      /* ignore */
+    }
+    window.location.href = "/";
   };
 
   return (
@@ -119,6 +134,18 @@ export default function AdminDashboard({ user, onLogout }: Props) {
               <div className="text-[10px] text-white/50 truncate">{user.email}</div>
             </div>
           </div>
+          <button
+            onClick={exitToSite}
+            className="w-full py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors mb-1.5"
+            style={{
+              background: "rgba(139, 92, 246, 0.1)",
+              color: "#c4b5fd",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+            }}
+          >
+            <Icon name="ArrowLeft" size={12} />
+            Вернуться на сайт
+          </button>
           <button
             onClick={handleLogout}
             className="w-full py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
