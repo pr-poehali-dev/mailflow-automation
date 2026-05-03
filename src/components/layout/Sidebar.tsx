@@ -117,27 +117,44 @@ export default function Sidebar({
 
       {/* User / Auth */}
       {user ? (
-        <div className={`border-t border-border p-3 flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 text-white"
-            style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
-            {(user.name || user.email).charAt(0).toUpperCase()}
-          </div>
-          {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium truncate">{user.name || "Пользователь"}</div>
-                <div className="text-[10px] text-muted-foreground truncate">{user.email}</div>
-              </div>
-              <button
-                onClick={() => logout()}
-                className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary"
-                title="Выйти"
+        <>
+          {user.role === "admin" && (
+            <div className="px-2 pb-2">
+              <a
+                href="/admin"
+                title={collapsed ? "ЦУП администратора" : undefined}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-transform hover:scale-[1.02] ${
+                  collapsed ? "justify-center" : ""
+                }`}
+                style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)" }}
               >
-                <Icon name="LogOut" size={13} />
-              </button>
-            </>
+                <Icon name="ShieldCheck" size={14} className="flex-shrink-0" />
+                {!collapsed && <span className="truncate">ЦУП администратора</span>}
+              </a>
+            </div>
           )}
-        </div>
+          <div className={`border-t border-border p-3 flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 text-white"
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
+              {(user.name || user.email).charAt(0).toUpperCase()}
+            </div>
+            {!collapsed && (
+              <>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium truncate">{user.name || "Пользователь"}</div>
+                  <div className="text-[10px] text-muted-foreground truncate">{user.email}</div>
+                </div>
+                <button
+                  onClick={() => logout()}
+                  className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary"
+                  title="Выйти"
+                >
+                  <Icon name="LogOut" size={13} />
+                </button>
+              </>
+            )}
+          </div>
+        </>
       ) : (
         <div className="border-t border-border p-2.5 space-y-1.5">
           {!collapsed ? (
