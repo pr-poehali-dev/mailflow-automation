@@ -121,7 +121,7 @@ export default function Sidebar({
           {user.role === "admin" && (
             <div className="px-2 pb-2">
               <a
-                href="/admin"
+                href="/?admin=1"
                 title={collapsed ? "ЦУП администратора" : undefined}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-transform hover:scale-[1.02] ${
                   collapsed ? "justify-center" : ""
