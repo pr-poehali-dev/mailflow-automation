@@ -9,6 +9,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import EmailVerifyBanner from "@/components/auth/EmailVerifyBanner";
 import EmailVerifyResult from "@/components/auth/EmailVerifyResult";
 import CommandPalette from "@/components/search/CommandPalette";
+import AdminApp from "@/admin/AdminApp";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Dashboard,
@@ -47,7 +48,31 @@ const PAGE_LABELS: Partial<Record<Page, string>> = {
   security: "панели безопасности",
 };
 
+function isAdminUrl(): boolean {
+  if (typeof window === "undefined") return false;
+  const sp = new URLSearchParams(window.location.search);
+  if (sp.get("admin") === "1") return true;
+  const p = window.location.pathname.toLowerCase();
+  if (p === "/admin" || p === "/admin/" || p.startsWith("/admin/")) return true;
+  try {
+    return sessionStorage.getItem("mk_admin_mode") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export default function App() {
+  // Если URL содержит /admin или ?admin=1 — показываем кабинет администратора.
+  // Это защита на случай, если main.tsx маршрутизация не сработала.
+  if (isAdminUrl()) {
+    try { sessionStorage.setItem("mk_admin_mode", "1"); } catch { /* ignore */ }
+    return <AdminApp />;
+  }
+
+  return <MainApp />;
+}
+
+function MainApp() {
   const { user, initialized } = useAuth();
   const [page, setPage] = useState<Page>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
