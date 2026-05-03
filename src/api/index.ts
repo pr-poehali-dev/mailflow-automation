@@ -35,46 +35,62 @@ export interface CampaignsResponse {
   stats: { contacts_count: number; total_sent: number; avg_open_rate: number };
 }
 
-// ─── Contacts ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const t = localStorage.getItem("mk_auth_token");
+    return t ? { "X-Auth-Token": t } : {};
+  } catch {
+    return {};
+  }
+}
+
+// ─── Contacts (требуют авторизации) ───────────────────────────────────────────
 
 export async function fetchContacts(): Promise<{ contacts: Contact[]; total: number }> {
-  const r = await fetch(CONTACTS_URL);
+  const r = await fetch(CONTACTS_URL, { headers: { ...getAuthHeaders() } });
+  if (!r.ok) return { contacts: [], total: 0 };
   return r.json();
 }
 
 export async function createContact(data: { name: string; email: string; segment?: string }): Promise<{ ok: boolean; id?: number; error?: string }> {
   const r = await fetch(CONTACTS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(data),
   });
   return r.json();
 }
 
 export async function deleteContact(id: number): Promise<void> {
-  await fetch(`${CONTACTS_URL}/${id}`, { method: "DELETE" });
+  await fetch(`${CONTACTS_URL}/${id}`, {
+    method: "DELETE",
+    headers: { ...getAuthHeaders() },
+  });
 }
 
 export async function importContacts(contacts: { name: string; email: string; segment?: string }[]): Promise<{ ok: boolean; inserted: number }> {
   const r = await fetch(CONTACTS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify({ contacts }),
   });
   return r.json();
 }
 
-// ─── Campaigns ────────────────────────────────────────────────────────────────
+// ─── Campaigns (требуют авторизации) ──────────────────────────────────────────
 
 export async function fetchCampaigns(): Promise<CampaignsResponse> {
-  const r = await fetch(CAMPAIGNS_URL);
+  const r = await fetch(CAMPAIGNS_URL, { headers: { ...getAuthHeaders() } });
+  if (!r.ok) return { campaigns: [], stats: { contacts_count: 0, total_sent: 0, avg_open_rate: 0 } };
   return r.json();
 }
 
 export async function createCampaign(data: { name: string; subject?: string; preheader?: string; body_text?: string; status?: string }): Promise<{ ok: boolean; id?: number }> {
   const r = await fetch(CAMPAIGNS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(data),
   });
   return r.json();
@@ -83,13 +99,16 @@ export async function createCampaign(data: { name: string; subject?: string; pre
 export async function updateCampaign(id: number, data: Partial<Campaign>): Promise<void> {
   await fetch(`${CAMPAIGNS_URL}/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteCampaign(id: number): Promise<void> {
-  await fetch(`${CAMPAIGNS_URL}/${id}`, { method: "DELETE" });
+  await fetch(`${CAMPAIGNS_URL}/${id}`, {
+    method: "DELETE",
+    headers: { ...getAuthHeaders() },
+  });
 }
 
 // ─── Email sending (Unisender) ─────────────────────────────────────────────────
@@ -164,19 +183,12 @@ export const testSmtpConnection = async (): Promise<{ ok: boolean; message?: str
   return r.json();
 };
 
-function authHeaders(): Record<string, string> {
-  try {
-    const t = localStorage.getItem("mk_auth_token");
-    return t ? { "X-Auth-Token": t } : {};
-  } catch { return {}; }
-}
-
 export async function sendTestEmail(data: {
   to: string; subject: string; text: string; from_name?: string; from_email?: string;
 }): Promise<{ ok: boolean; error?: string; message?: string; message_id?: string; provider?: string }> {
   const r = await fetch(`${SEND_EMAIL_URL}?action=test`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(data),
   });
   return r.json();
@@ -187,7 +199,7 @@ export async function sendCampaignBlast(data: {
 }): Promise<{ ok: boolean; sent?: number; failed?: number; total?: number; error?: string; message?: string; errors?: { email: string; error: string }[] }> {
   const r = await fetch(`${SEND_EMAIL_URL}?action=blast`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(data),
   });
   return r.json();

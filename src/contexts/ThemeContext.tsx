@@ -19,9 +19,17 @@ export function useTheme() {
 
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-  if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    // localStorage недоступен (приватный режим Safari) — используем системную тему
+  }
+  try {
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch {
+    return "light";
+  }
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -32,7 +40,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     root.style.colorScheme = theme;
-    localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // localStorage недоступен — тема всё равно работает в рамках сессии
+    }
   }, [theme]);
 
   const setTheme = useCallback((t: Theme) => setThemeState(t), []);

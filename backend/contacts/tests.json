@@ -1,21 +1,23 @@
 {
   "tests": [
     {
-      "name": "GET contacts list",
+      "name": "GET без токена возвращает 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"contacts": []},
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "POST create contact",
+      "name": "POST без токена возвращает 401",
       "method": "POST",
       "path": "/",
-      "body": {"name": "Тест Тестов", "email": "test_mailka_unique@test.ru", "segment": "Новый"},
-      "expectedStatus": 201,
-      "expectedBody": {"ok": true},
-      "bodyMatcher": "partial"
+      "body": {"name": "Тест", "email": "test@test.ru"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
     }
   ]
 }

@@ -1,21 +1,23 @@
 {
   "tests": [
     {
-      "name": "GET campaigns list",
+      "name": "GET без токена возвращает 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"campaigns": [], "stats": {}},
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "POST create campaign",
+      "name": "POST без токена возвращает 401",
       "method": "POST",
       "path": "/",
-      "body": {"name": "Тестовая кампания", "subject": "Привет!", "status": "draft"},
-      "expectedStatus": 201,
-      "expectedBody": {"ok": true},
-      "bodyMatcher": "partial"
+      "body": {"name": "Тест", "subject": "Тема"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
     }
   ]
 }
