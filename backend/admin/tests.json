@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "GET overview без токена → 401",
+      "method": "GET",
+      "path": "/?action=overview",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET users без токена → 401",
+      "method": "GET",
+      "path": "/?action=users",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST toggle_user без токена → 401",
+      "method": "POST",
+      "path": "/?action=toggle_user",
+      "body": {"user_id": 1, "is_active": false},
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
