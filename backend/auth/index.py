@@ -1,5 +1,5 @@
 """
-Auth: register / login / logout / me / change-password.
+Auth: register / login / logout / me / change-password. v2
 Безопасность: bcrypt-хэш паролей (PBKDF2-HMAC-SHA256 без внешних зависимостей),
 HMAC-подписанные сессионные токены, CSRF-токен, rate-limit по IP+email,
 защита от перебора (lock-out), audit-лог, валидация входных данных.
