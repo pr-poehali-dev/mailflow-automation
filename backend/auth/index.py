@@ -799,6 +799,19 @@ def handler(event, context):
         return json_response(400, {'error': 'Некорректный JSON'})
     except Exception as e:
         conn.rollback()
+        import traceback
+        tb = traceback.format_exc()
+        # Запишем ошибку в audit_log для дебага
+        try:
+            cur2 = conn.cursor()
+            cur2.execute(
+                f"INSERT INTO {S}auth_audit_log (event_type, success, details) VALUES (%s, %s, %s)",
+                ('debug_500', False, f"action={action} err={e!r} tb={tb[-1500:]}")
+            )
+            conn.commit()
+            cur2.close()
+        except Exception:
+            pass
         return json_response(500, {'error': 'Внутренняя ошибка'})
     finally:
         cur.close()
