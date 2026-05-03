@@ -10,6 +10,10 @@ export interface Contact {
   segment: string;
   status: string;
   created_at: string | null;
+  consent_status?: string;
+  consent_source?: string;
+  consent_at?: string | null;
+  unsubscribed_at?: string | null;
 }
 
 export interface Campaign {

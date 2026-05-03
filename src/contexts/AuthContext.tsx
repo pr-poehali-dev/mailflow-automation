@@ -19,7 +19,12 @@ interface AuthCtx {
   loading: boolean;
   initialized: boolean;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  register: (email: string, password: string, name: string) => Promise<{ ok: boolean; error?: string }>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+    consents?: { offer: boolean; privacy: boolean; marketing?: boolean },
+  ) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   authFetch: (url: string, init?: RequestInit) => Promise<Response>;
   verifyEmail: (token: string) => Promise<{ ok: boolean; error?: string }>;
@@ -109,13 +114,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    name: string,
+    consents: { offer: boolean; privacy: boolean; marketing?: boolean } = { offer: true, privacy: true },
+  ) => {
     setLoading(true);
     try {
       const res = await fetch(`${AUTH_URL}?action=register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          accept_offer: consents.offer,
+          accept_privacy: consents.privacy,
+          accept_marketing: consents.marketing ?? false,
+          docs_version: "1.0",
+        }),
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, error: data.error || "Ошибка регистрации" };

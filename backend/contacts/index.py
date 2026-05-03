@@ -110,13 +110,18 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get("body") or "{}")
             cur = conn.cursor()
 
-            # Batch import
+            # Источник и текст согласия — обязательная фиксация для 152-ФЗ
+            source = (body.get("consent_source") or "manual")[:50]
+            consent_text = (body.get("consent_text") or "")[:1000] or None
+            req_headers = event.get("headers") or {}
+            ip = (req_headers.get("X-Forwarded-For") or req_headers.get("x-forwarded-for") or "").split(",")[0].strip()[:64] or None
+
+            # Batch import — массовая загрузка собственной базы (consent_status = 'imported')
             if "contacts" in body:
                 inserted = 0
                 items = body["contacts"]
                 if not isinstance(items, list):
                     return resp(400, {"error": "contacts must be a list"}, event)
-                # Лимит на одну операцию импорта — защита от DoS
                 if len(items) > 5000:
                     return resp(400, {"error": "Слишком много контактов за раз (макс 5000)"}, event)
                 for c in items:
@@ -125,8 +130,10 @@ def handler(event: dict, context) -> dict:
                         if not email or "@" not in email:
                             continue
                         cur.execute(
-                            f"INSERT INTO {SCHEMA}.contacts (user_id, name, email, segment, status) "
-                            f"VALUES (%s, %s, %s, %s, %s) "
+                            f"INSERT INTO {SCHEMA}.contacts "
+                            f"(user_id, name, email, segment, status, "
+                            f"consent_status, consent_source, consent_at, consent_ip, consent_text) "
+                            f"VALUES (%s, %s, %s, %s, %s, 'imported', %s, NOW(), %s, %s) "
                             f"ON CONFLICT (user_id, email) DO NOTHING",
                             (
                                 user_id,
@@ -134,6 +141,7 @@ def handler(event: dict, context) -> dict:
                                 email[:255],
                                 (c.get("segment") or "Новый")[:100],
                                 (c.get("status") or "active")[:50],
+                                source, ip, consent_text,
                             ),
                         )
                         inserted += cur.rowcount
@@ -141,22 +149,34 @@ def handler(event: dict, context) -> dict:
                         conn.rollback()
                 conn.commit()
                 cur.close()
-                return resp(200, {"ok": True, "inserted": inserted}, event)
+                return resp(200, {"ok": True, "inserted": inserted,
+                                  "warning": "Импортированные контакты должны иметь подтверждённое согласие на рассылку (152-ФЗ ст. 9, 38-ФЗ ст. 18). Ответственность лежит на вас."}, event)
 
             # Single contact
             name = (body.get("name") or "")[:255]
             email = (body.get("email") or "").strip().lower()[:255]
             segment = (body.get("segment") or "Новый")[:100]
             status = (body.get("status") or "active")[:50]
+            consent_status = (body.get("consent_status") or "manual")[:20]
             if not email or "@" not in email:
                 return resp(400, {"error": "email required"}, event)
             try:
                 cur.execute(
-                    f"INSERT INTO {SCHEMA}.contacts (user_id, name, email, segment, status) "
-                    f"VALUES (%s, %s, %s, %s, %s) RETURNING id",
-                    (user_id, name, email, segment, status),
+                    f"INSERT INTO {SCHEMA}.contacts "
+                    f"(user_id, name, email, segment, status, "
+                    f"consent_status, consent_source, consent_at, consent_ip, consent_text) "
+                    f"VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s) RETURNING id",
+                    (user_id, name, email, segment, status,
+                     consent_status, source, ip, consent_text),
                 )
                 new_id = cur.fetchone()[0]
+                # Лог согласия контакта (для 152-ФЗ)
+                cur.execute(
+                    f"INSERT INTO {SCHEMA}.consent_log "
+                    f"(user_id, contact_id, action, document, source, ip_address, details) "
+                    f"VALUES (%s, %s, 'accept', 'subscribe', %s, %s, %s)",
+                    (user_id, new_id, source, ip, consent_text),
+                )
                 conn.commit()
             except psycopg2.errors.UniqueViolation:
                 conn.rollback()
@@ -168,7 +188,8 @@ def handler(event: dict, context) -> dict:
         # GET /contacts — только свои контакты
         cur = conn.cursor()
         cur.execute(
-            f"SELECT id, name, email, segment, status, created_at "
+            f"SELECT id, name, email, segment, status, created_at, "
+            f"consent_status, consent_source, consent_at, unsubscribed_at "
             f"FROM {SCHEMA}.contacts WHERE user_id = %s "
             f"ORDER BY created_at DESC LIMIT 5000",
             (user_id,),
@@ -184,6 +205,10 @@ def handler(event: dict, context) -> dict:
                 "segment": r[3],
                 "status": r[4],
                 "created_at": r[5].isoformat() if r[5] else None,
+                "consent_status": r[6],
+                "consent_source": r[7],
+                "consent_at": r[8].isoformat() if r[8] else None,
+                "unsubscribed_at": r[9].isoformat() if r[9] else None,
             }
             for r in rows
         ]

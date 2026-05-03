@@ -261,6 +261,10 @@ def action_register(event: dict, cur, conn) -> dict:
     email = (body.get('email') or '').strip().lower()
     password = body.get('password') or ''
     name = (body.get('name') or '').strip()
+    accept_offer = bool(body.get('accept_offer'))
+    accept_privacy = bool(body.get('accept_privacy'))
+    accept_marketing = bool(body.get('accept_marketing', False))
+    docs_version = (body.get('docs_version') or '1.0').strip()[:20]
     ip = get_client_ip(event)
     ua = get_user_agent(event.get('headers') or {})
 
@@ -278,6 +282,12 @@ def action_register(event: dict, cur, conn) -> dict:
     if name and not NAME_RE.match(name):
         return json_response(400, {'error': 'Некорректное имя'})
 
+    # Обязательные согласия (152-ФЗ + договор-оферта)
+    if not accept_offer:
+        return json_response(400, {'error': 'Необходимо принять договор-оферту'})
+    if not accept_privacy:
+        return json_response(400, {'error': 'Необходимо согласие на обработку персональных данных (152-ФЗ)'})
+
     cur.execute(f"SELECT 1 FROM {S}users WHERE email_lower = %s", (email,))
     if cur.fetchone():
         audit(cur, 'register', False, email=email, ip=ip, ua=ua, details='email_taken')
@@ -286,12 +296,31 @@ def action_register(event: dict, cur, conn) -> dict:
 
     pwd_hash = hash_password(password)
     cur.execute(
-        f"INSERT INTO {S}users (email, email_lower, password_hash, name, last_login_ip, last_login_at) "
-        f"VALUES (%s, %s, %s, %s, %s, NOW()) RETURNING id, email, name, role, created_at",
-        (email, email, pwd_hash, name, ip)
+        f"INSERT INTO {S}users (email, email_lower, password_hash, name, last_login_ip, last_login_at, "
+        f"accepted_offer_at, accepted_privacy_at, accepted_marketing_at, "
+        f"consent_ip, consent_user_agent, consent_documents_version) "
+        f"VALUES (%s, %s, %s, %s, %s, NOW(), NOW(), NOW(), %s, %s, %s, %s) "
+        f"RETURNING id, email, name, role, created_at",
+        (email, email, pwd_hash, name, ip,
+         datetime.utcnow().isoformat() if accept_marketing else None,
+         ip, (ua or '')[:500], docs_version)
     )
     user = cur.fetchone()
     user_id = user[0]
+
+    # Лог согласий (для аудита 152-ФЗ)
+    for doc in ('offer', 'privacy'):
+        cur.execute(
+            f"INSERT INTO {S}consent_log (user_id, action, document, document_version, source, ip_address, user_agent) "
+            f"VALUES (%s, 'accept', %s, %s, 'register', %s, %s)",
+            (user_id, doc, docs_version, ip, (ua or '')[:500])
+        )
+    if accept_marketing:
+        cur.execute(
+            f"INSERT INTO {S}consent_log (user_id, action, document, document_version, source, ip_address, user_agent) "
+            f"VALUES (%s, 'accept', 'marketing', %s, 'register', %s, %s)",
+            (user_id, docs_version, ip, (ua or '')[:500])
+        )
 
     token, token_hash = make_session_token(user_id)
     csrf = secrets.token_urlsafe(32)
