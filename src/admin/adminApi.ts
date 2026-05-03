@@ -3,10 +3,14 @@ const ADMIN_URL = "https://functions.poehali.dev/1e03fe01-5cd5-4f97-842a-6ab7688
 const AUTH_URL = "https://functions.poehali.dev/fc6e1c96-a844-462f-bc06-93773427968f";
 
 const ADMIN_TOKEN_KEY = "mk_admin_token";
+const MAIN_TOKEN_KEY = "mk_auth_token";
 
 export function getAdminToken(): string | null {
   try {
-    return localStorage.getItem(ADMIN_TOKEN_KEY);
+    return (
+      localStorage.getItem(ADMIN_TOKEN_KEY) ||
+      localStorage.getItem(MAIN_TOKEN_KEY)
+    );
   } catch {
     return null;
   }
