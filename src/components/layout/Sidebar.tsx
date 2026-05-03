@@ -13,7 +13,7 @@ interface SidebarProps {
   onSearchClick?: () => void;
 }
 
-const PUBLIC_PAGES: Page[] = ["dashboard", "pricing"];
+const PUBLIC_PAGES: Page[] = ["dashboard", "pricing", "mailbox"];
 
 export default function Sidebar({
   page, setPage, collapsed, setCollapsed, onLoginClick, onRegisterClick, onSearchClick,

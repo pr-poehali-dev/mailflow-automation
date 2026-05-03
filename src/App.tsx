@@ -26,9 +26,10 @@ import OmnichannelPage from "@/components/pages/OmnichannelPage";
 import PredictPage from "@/components/pages/PredictPage";
 import PricingPage from "@/components/pages/PricingPage";
 import SecurityPage from "@/components/pages/SecurityPage";
+import MailboxStorePage from "@/components/pages/MailboxStorePage";
 
-// Главная и страница тарифов открыты всем — остальные требуют регистрацию
-const PUBLIC_PAGES: Page[] = ["dashboard", "pricing"];
+// Главная, страница тарифов и витрина корпоративной почты открыты всем
+const PUBLIC_PAGES: Page[] = ["dashboard", "pricing", "mailbox"];
 
 const PAGE_LABELS: Partial<Record<Page, string>> = {
   campaigns: "рассылок",
@@ -40,6 +41,7 @@ const PAGE_LABELS: Partial<Record<Page, string>> = {
   analytics: "аналитики",
   integrations: "интеграций",
   templates: "шаблонов",
+  mailbox: "корпоративной почты",
   settings: "настроек",
   api: "ключей программного интерфейса",
   security: "панели безопасности",
@@ -118,6 +120,7 @@ export default function App() {
     analytics: <Analytics />,
     integrations: <Integrations />,
     templates: <Templates setPage={guardedSetPage} />,
+    mailbox: <MailboxStorePage />,
     pricing: <PricingPage />,
     settings: <SettingsPage />,
     api: <ApiPage />,

@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "GET providers — публичный список тарифов",
+      "method": "GET",
+      "path": "/?action=providers",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST click без provider → 400",
+      "method": "POST",
+      "path": "/?action=click",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST request без email → 400",
+      "method": "POST",
+      "path": "/?action=request",
+      "body": {"provider": "beget"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "GET my_orders без токена → 401",
+      "method": "GET",
+      "path": "/?action=my_orders",
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
