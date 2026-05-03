@@ -7,13 +7,14 @@ import AdminCampaignsTab from "./tabs/AdminCampaignsTab";
 import AdminEmailsTab from "./tabs/AdminEmailsTab";
 import AdminHealthTab from "./tabs/AdminHealthTab";
 import AdminOverviewTab from "./tabs/AdminOverviewTab";
+import AdminMailboxOrdersTab from "./tabs/AdminMailboxOrdersTab";
 
 interface Props {
   user: AdminUser;
   onLogout: () => void;
 }
 
-type Tab = "overview" | "users" | "audit" | "campaigns" | "emails" | "health";
+type Tab = "overview" | "users" | "audit" | "campaigns" | "emails" | "mailbox" | "health";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Обзор", icon: "LayoutDashboard" },
@@ -21,6 +22,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "audit", label: "Аудит входов", icon: "ScrollText" },
   { id: "campaigns", label: "Все кампании", icon: "Mail" },
   { id: "emails", label: "Логи писем", icon: "Send" },
+  { id: "mailbox", label: "Заявки на почту", icon: "AtSign" },
   { id: "health", label: "Здоровье БД", icon: "Activity" },
 ];
 
@@ -169,6 +171,7 @@ export default function AdminDashboard({ user, onLogout }: Props) {
           {tab === "audit" && <AdminAuditTab />}
           {tab === "campaigns" && <AdminCampaignsTab />}
           {tab === "emails" && <AdminEmailsTab />}
+          {tab === "mailbox" && <AdminMailboxOrdersTab />}
           {tab === "health" && <AdminHealthTab />}
         </div>
       </main>

@@ -197,3 +197,65 @@ export async function fetchHealth() {
   const r = await fetch(`${ADMIN_URL}?action=health`, { headers: authHeaders() });
   return r.json();
 }
+
+// ─── Заявки на корпоративную почту ──────────────────────────────────────────
+
+export interface MailboxOrderRow {
+  id: number;
+  user_id: number | null;
+  user_email: string | null;
+  user_name: string | null;
+  provider: string;
+  plan_code: string | null;
+  domain: string | null;
+  mailboxes_count: number | null;
+  contact_email: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  status: string;
+  notes: string | null;
+  utm_source: string | null;
+  ip_address: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchMailboxOrders(filter: {
+  status?: string; provider?: string; search?: string; limit?: number;
+} = {}): Promise<{ orders: MailboxOrderRow[]; stats: Record<string, number> }> {
+  const url = new URL(ADMIN_URL);
+  url.searchParams.set("action", "mailbox_orders");
+  if (filter.status) url.searchParams.set("status", filter.status);
+  if (filter.provider) url.searchParams.set("provider", filter.provider);
+  if (filter.search) url.searchParams.set("search", filter.search);
+  url.searchParams.set("limit", String(filter.limit ?? 200));
+  const r = await fetch(url.toString(), { headers: authHeaders() });
+  return r.json();
+}
+
+export async function setMailboxOrderStatus(order_id: number, status: string) {
+  const r = await fetch(`${ADMIN_URL}?action=mailbox_set_status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ order_id, status }),
+  });
+  return r.json();
+}
+
+export async function setMailboxOrderNotes(order_id: number, notes: string) {
+  const r = await fetch(`${ADMIN_URL}?action=mailbox_set_notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ order_id, notes }),
+  });
+  return r.json();
+}
+
+export async function deleteMailboxOrder(order_id: number) {
+  const r = await fetch(`${ADMIN_URL}?action=mailbox_delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ order_id }),
+  });
+  return r.json();
+}

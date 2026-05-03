@@ -16,6 +16,10 @@
   contacts_top  GET  — топ-аккаунты по объёму контактов
   rate_limits   GET  — текущие лимиты
   health        GET  — состояние системы (БД, индексы)
+  mailbox_orders      GET  — заявки на корпоративную почту (фильтры status/provider/search)
+  mailbox_set_status  POST — смена статуса заявки {order_id, status}
+  mailbox_set_notes   POST — заметка к заявке {order_id, notes}
+  mailbox_delete      POST — удалить заявку {order_id}
 """
 import json
 import os
@@ -459,6 +463,127 @@ def handler(event: dict, context) -> dict:
                  "window_start": r[3], "last_attempt_at": r[4]}
                 for r in rows
             ]}, event)
+
+        # ── MAILBOX ORDERS: заявки на корпоративную почту ──────────────────
+        if action == "mailbox_orders":
+            status_filter = (qs.get("status") or "").strip()
+            provider_filter = (qs.get("provider") or "").strip()
+            search = (qs.get("search") or "").strip()
+            limit = max(1, min(int(qs.get("limit") or 100), 500))
+
+            where = ["1=1"]
+            params = []
+            if status_filter:
+                where.append("mo.status = %s")
+                params.append(status_filter[:30])
+            if provider_filter:
+                where.append("mo.provider = %s")
+                params.append(provider_filter[:40])
+            if search:
+                where.append("(mo.contact_email ILIKE %s OR mo.contact_name ILIKE %s "
+                             "OR mo.domain ILIKE %s OR u.email ILIKE %s)")
+                like = f"%{search[:60]}%"
+                params.extend([like, like, like, like])
+
+            cur = conn.cursor()
+            cur.execute(
+                f"SELECT mo.id, mo.user_id, u.email, u.name, "
+                f"mo.provider, mo.plan_code, mo.domain, mo.mailboxes_count, "
+                f"mo.contact_email, mo.contact_name, mo.contact_phone, "
+                f"mo.status, mo.notes, mo.utm_source, mo.ip_address, "
+                f"mo.created_at, mo.updated_at "
+                f"FROM {SCHEMA}.mailbox_orders mo "
+                f"LEFT JOIN {SCHEMA}.users u ON u.id = mo.user_id "
+                f"WHERE {' AND '.join(where)} "
+                f"ORDER BY mo.created_at DESC LIMIT {limit}",
+                tuple(params),
+            )
+            rows = cur.fetchall()
+
+            # Сводка по статусам
+            cur.execute(
+                f"SELECT status, COUNT(*) FROM {SCHEMA}.mailbox_orders GROUP BY status"
+            )
+            stats_rows = cur.fetchall()
+            cur.close()
+
+            return resp(200, {
+                "orders": [{
+                    "id": r[0], "user_id": r[1], "user_email": r[2], "user_name": r[3],
+                    "provider": r[4], "plan_code": r[5], "domain": r[6],
+                    "mailboxes_count": r[7],
+                    "contact_email": r[8], "contact_name": r[9], "contact_phone": r[10],
+                    "status": r[11], "notes": r[12], "utm_source": r[13],
+                    "ip_address": r[14],
+                    "created_at": r[15], "updated_at": r[16],
+                } for r in rows],
+                "stats": {r[0]: r[1] for r in stats_rows},
+            }, event)
+
+        if action == "mailbox_set_status" and method == "POST":
+            order_id = int(body.get("order_id") or 0)
+            new_status = (body.get("status") or "").strip()[:30]
+            allowed = {"click", "request", "contacted", "paid", "cancelled"}
+            if not order_id or new_status not in allowed:
+                return resp(400, {
+                    "error": "Нужны order_id и валидный status (click/request/contacted/paid/cancelled)"
+                }, event)
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE {SCHEMA}.mailbox_orders SET status = %s, updated_at = NOW() "
+                f"WHERE id = %s RETURNING id",
+                (new_status, order_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                cur.close()
+                return resp(404, {"error": "Заявка не найдена"}, event)
+            audit(cur, admin_id, "mailbox_set_status", None,
+                  f"order={order_id} status={new_status}")
+            conn.commit()
+            cur.close()
+            return resp(200, {"ok": True, "order_id": order_id, "status": new_status}, event)
+
+        if action == "mailbox_set_notes" and method == "POST":
+            order_id = int(body.get("order_id") or 0)
+            notes = (body.get("notes") or "")[:2000]
+            if not order_id:
+                return resp(400, {"error": "order_id required"}, event)
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE {SCHEMA}.mailbox_orders SET notes = %s, updated_at = NOW() "
+                f"WHERE id = %s RETURNING id",
+                (notes, order_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                cur.close()
+                return resp(404, {"error": "Заявка не найдена"}, event)
+            audit(cur, admin_id, "mailbox_set_notes", None, f"order={order_id}")
+            conn.commit()
+            cur.close()
+            return resp(200, {"ok": True}, event)
+
+        if action == "mailbox_delete" and method == "POST":
+            order_id = int(body.get("order_id") or 0)
+            if not order_id:
+                return resp(400, {"error": "order_id required"}, event)
+            cur = conn.cursor()
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.mailbox_orders WHERE id = %s RETURNING id",
+                (order_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                cur.close()
+                return resp(404, {"error": "Заявка не найдена"}, event)
+            audit(cur, admin_id, "mailbox_delete", None, f"order={order_id}")
+            conn.commit()
+            cur.close()
+            return resp(200, {"ok": True}, event)
 
         # ── HEALTH ─────────────────────────────────────────────────────────
         if action == "health":
