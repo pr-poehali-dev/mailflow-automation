@@ -6,6 +6,7 @@ import {
   fetchContacts, createContact, deleteContact, importContacts,
   Campaign, Contact,
 } from "@/api";
+import ImportWizard from "./contacts/ImportWizard";
 
 // ─── Campaigns ────────────────────────────────────────────────────────────────
 
@@ -208,6 +209,7 @@ export function Contacts() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [importMsg, setImportMsg] = useState("");
+  const [wizardOpen, setWizardOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
@@ -283,7 +285,7 @@ export function Contacts() {
         <div className="flex gap-2 w-full sm:w-auto">
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
           <button
-            onClick={() => fileRef.current?.click()}
+            onClick={() => setWizardOpen(true)}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass hover:bg-white/8 transition-colors">
             <Icon name="Upload" size={15} />
             <span className="hidden sm:inline">Импорт CSV</span>
@@ -436,6 +438,12 @@ export function Contacts() {
           </table></div>
         )}
       </div>
+
+      <ImportWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onImported={load}
+      />
     </div>
   );
 }

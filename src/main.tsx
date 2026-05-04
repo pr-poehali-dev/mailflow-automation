@@ -9,6 +9,13 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import './index.css'
 
+// Регистрация Service Worker для PWA
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 // Роутинг по пути / query.
 const path = window.location.pathname.toLowerCase();
 const search = new URLSearchParams(window.location.search);

@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { fetchEmailLogs, fetchSmtpStatus } from "@/api/index";
 import type { EmailLog, SmtpStatus } from "@/api/index";
 import { SmtpWizard } from "./SmtpWizard";
+import CrmIntegrations from "./integrations/CrmIntegrations";
 
 export function Integrations() {
   const [logs, setLogs] = useState<EmailLog[]>([]);
@@ -132,6 +133,9 @@ export function Integrations() {
           ))}
         </div>
       </div>
+
+      {/* CRM-интеграции */}
+      <CrmIntegrations />
 
       {/* Email logs */}
       {showLogs && (

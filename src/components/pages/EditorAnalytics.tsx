@@ -6,6 +6,7 @@ import { EditorVerifyBanner } from "./editor/EditorVerifyBanner";
 import { TestSendPanel, BlastPanel } from "./editor/EditorPanels";
 import { EditorForm } from "./editor/EditorForm";
 import { Analytics } from "./editor/AnalyticsView";
+import VisualBuilder, { EmailBlock, blocksToText } from "./editor/VisualBuilder";
 
 // ─── EmailEditor ──────────────────────────────────────────────────────────────
 
@@ -52,6 +53,22 @@ export function EmailEditor() {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Режим редактирования: "text" — старый textarea, "visual" — drag&drop конструктор
+  const [editorMode, setEditorMode] = useState<"text" | "visual">("text");
+  const [blocks, setBlocks] = useState<EmailBlock[]>([
+    { id: "b1", type: "heading", content: { text: "Привет, {{first_name}}!", color: "#0f172a", size: "28" } },
+    { id: "b2", type: "text", content: { text: "Рады сообщить о специальном предложении только для вас.", color: "#334155" } },
+    { id: "b3", type: "button", content: { text: "Перейти к предложению", url: "https://", bg: "#8b5cf6", color: "#ffffff" } },
+  ]);
+
+  // При переключении на текст — синхронизируем содержимое
+  const handleSwitchMode = (mode: "text" | "visual") => {
+    if (mode === "text" && editorMode === "visual") {
+      setBodyText(blocksToText(blocks));
+    }
+    setEditorMode(mode);
+  };
 
   const variables = ["{{first_name}}", "{{last_name}}", "{{email}}", "{{segment}}", "{{company_name}}", "{{expire_date}}"];
 
@@ -208,27 +225,57 @@ export function EmailEditor() {
         />
       )}
 
-      <EditorForm
-        subject={subject}
-        setSubject={setSubject}
-        preheader={preheader}
-        setPreheader={setPreheader}
-        bodyText={bodyText}
-        setBodyText={setBodyText}
-        fromName={fromName}
-        setFromName={setFromName}
-        fromEmail={fromEmail}
-        setFromEmail={setFromEmail}
-        isAdvertising={isAdvertising}
-        setIsAdvertising={setIsAdvertising}
-        advertiserName={advertiserName}
-        setAdvertiserName={setAdvertiserName}
-        advertiserInn={advertiserInn}
-        setAdvertiserInn={setAdvertiserInn}
-        erid={erid}
-        setErid={setErid}
-        variables={variables}
-      />
+      {/* Переключатель режима редактирования */}
+      <div className="flex items-center gap-1 p-1 rounded-xl glass w-fit">
+        <button
+          onClick={() => handleSwitchMode("text")}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            editorMode === "text" ? "text-white" : "text-muted-foreground hover:text-foreground"
+          }`}
+          style={editorMode === "text" ? { background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" } : {}}>
+          <Icon name="Type" size={13} />
+          Текст
+        </button>
+        <button
+          onClick={() => handleSwitchMode("visual")}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            editorMode === "visual" ? "text-white" : "text-muted-foreground hover:text-foreground"
+          }`}
+          style={editorMode === "visual" ? { background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" } : {}}>
+          <Icon name="LayoutGrid" size={13} />
+          Визуальный конструктор
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md ml-1"
+            style={{ background: "rgba(255,255,255,0.2)" }}>
+            НОВОЕ
+          </span>
+        </button>
+      </div>
+
+      {editorMode === "visual" ? (
+        <VisualBuilder blocks={blocks} setBlocks={setBlocks} />
+      ) : (
+        <EditorForm
+          subject={subject}
+          setSubject={setSubject}
+          preheader={preheader}
+          setPreheader={setPreheader}
+          bodyText={bodyText}
+          setBodyText={setBodyText}
+          fromName={fromName}
+          setFromName={setFromName}
+          fromEmail={fromEmail}
+          setFromEmail={setFromEmail}
+          isAdvertising={isAdvertising}
+          setIsAdvertising={setIsAdvertising}
+          advertiserName={advertiserName}
+          setAdvertiserName={setAdvertiserName}
+          advertiserInn={advertiserInn}
+          setAdvertiserInn={setAdvertiserInn}
+          erid={erid}
+          setErid={setErid}
+          variables={variables}
+        />
+      )}
     </div>
   );
 }

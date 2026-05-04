@@ -11,6 +11,7 @@ import EmailVerifyBanner from "@/components/auth/EmailVerifyBanner";
 import EmailVerifyResult from "@/components/auth/EmailVerifyResult";
 import CommandPalette from "@/components/search/CommandPalette";
 import AiConsultant from "@/components/AiConsultant";
+import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import AdminApp from "@/admin/AdminApp";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -231,6 +232,7 @@ function MainApp() {
       />
 
       <AiConsultant />
+      <PwaInstallPrompt />
     </div>
   );
 }

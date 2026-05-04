@@ -5,6 +5,7 @@ import { Plan, PLANS } from "./pricing/data";
 import { PlanCards } from "./pricing/PlanCards";
 import { PricingExtras } from "./pricing/PricingExtras";
 import { FinalCta } from "./pricing/FinalCta";
+import PriceCalculator from "./pricing/PriceCalculator";
 
 export function PricingPage() {
   const [yearly, setYearly] = useState(true);
@@ -43,6 +44,8 @@ export function PricingPage() {
         calcSaving={calcSaving}
         onSelectPlan={setPaymentPlan}
       />
+
+      <PriceCalculator yearly={yearly} />
 
       <PricingExtras openFaq={openFaq} setOpenFaq={setOpenFaq} />
 
