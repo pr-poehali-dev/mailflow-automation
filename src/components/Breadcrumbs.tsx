@@ -25,11 +25,14 @@ const PAGE_SECTIONS: Record<Page, Section> = {
   analytics:    { category: "Аналитика",    label: "Отчёты",             icon: "BarChart2" },
   integrations: { category: "Подключения",  label: "Интеграции",         icon: "Puzzle" },
   templates:    { category: "Маркетинг",    label: "Шаблоны писем",      icon: "LayoutTemplate" },
+  mailbox:      { category: "Сервисы",      label: "Корпоративная почта", icon: "AtSign" },
   pricing:      { category: "Аккаунт",      label: "Тарифы и оплата",    icon: "Crown" },
   settings:     { category: "Аккаунт",      label: "Настройки",          icon: "Settings" },
   api:          { category: "Подключения",  label: "Программный интерфейс для разработчиков", icon: "Code2" },
   security:     { category: "Аккаунт",      label: "Безопасность",       icon: "ShieldCheck" },
 };
+
+const FALLBACK_SECTION: Section = { category: "Раздел", label: "Страница", icon: "Circle" };
 
 const BASE_URL = "https://mail-ka.ru";
 
@@ -40,7 +43,7 @@ interface Props {
 }
 
 export function Breadcrumbs({ page, setPage, extra }: Props) {
-  const section = PAGE_SECTIONS[page];
+  const section = PAGE_SECTIONS[page] || FALLBACK_SECTION;
 
   const items: BreadcrumbItem[] = [
     { label: "MAIL-KA", page: "dashboard", icon: "Home" },
