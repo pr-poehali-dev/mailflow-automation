@@ -31,6 +31,7 @@ Disallow: /admin/
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
 Clean-param: payment&verify_email&admin&ref
 Clean-param: yclid&gclid&fbclid&_openstat&from
+# ВАЖНО: page НЕ добавляем в Clean-param, т.к. это смысловой параметр секций сайта
 
 User-agent: YandexBot
 Disallow: /api/
