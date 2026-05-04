@@ -2,13 +2,19 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /backend/
+Disallow: /admin
+Disallow: /admin/
 
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /admin/
 
 User-agent: Yandex
 Allow: /
-Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
+Disallow: /admin
+Disallow: /admin/
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&payment&verify_email&admin
 
 User-agent: Bingbot
 Allow: /
