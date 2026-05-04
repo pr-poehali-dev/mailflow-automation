@@ -73,13 +73,14 @@ def build_providers():
     yandex_ref = os.environ.get("YANDEX360_REFERRAL_CODE", "").strip()
 
     def beget_url(plan: str) -> str:
-        # У Beget партнёрский PIN идёт В ПУТЬ URL: https://beget.com/pPIN/mail
-        # PIN может быть в формате "p123456" или просто "123456" — нормализуем.
+        # У Beget нет отдельной страницы "почта" — почта идёт бесплатно в комплекте
+        # с любым тарифом хостинга. Поэтому ведём на раздел хостинга.
+        # Партнёрский PIN идёт В ПУТЬ URL: https://beget.com/pPIN
         utm = f"utm_source=mailka&utm_medium=cabinet&utm_campaign=mailbox_{plan}"
         if beget_aff:
             pin = beget_aff if beget_aff.startswith("p") else f"p{beget_aff}"
-            return f"https://beget.com/{pin}/mail?{utm}"
-        return f"https://beget.com/ru/mail?{utm}"
+            return f"https://beget.com/{pin}?{utm}"
+        return f"https://beget.com/ru/hosting?{utm}"
 
     def yandex_url(plan: str) -> str:
         # Если в секрете лежит полный URL (https://...) — используем его как есть.
@@ -96,23 +97,23 @@ def build_providers():
     return [
         {
             "provider": "beget",
-            "name": "Beget Mail",
+            "name": "Beget — хостинг + почта",
             "logo_emoji": "📮",
             "country": "Россия",
             "license": "Лицензия Роскомнадзора, серверы в РФ",
-            "highlight": "Самое выгодное",
+            "highlight": "Почта в подарок",
             "color": "#3b82f6",
             "features": [
-                "До 50 ГБ на ящик",
-                "IMAP/POP3/SMTP",
-                "Антиспам и антивирус",
-                "Своё доменное имя",
-                "Поддержка 24/7",
+                "Безлимит ящиков на домене",
+                "IMAP/POP3/SMTP, веб-интерфейс",
+                "Антиспам и антивирус Касперского",
+                "Бесплатно при заказе хостинга",
+                "Поддержка 24/7 за 11 секунд",
             ],
             "plans": [
-                {"code": "start", "title": "Старт", "price_rub": 99, "period": "мес/ящик", "mailboxes": 1, "url": beget_url("start")},
-                {"code": "biz", "title": "Бизнес", "price_rub": 249, "period": "мес/ящик", "mailboxes": 5, "url": beget_url("biz")},
-                {"code": "pro", "title": "Профи", "price_rub": 499, "period": "мес/ящик", "mailboxes": 20, "url": beget_url("pro")},
+                {"code": "blog", "title": "Blog", "price_rub": 219, "period": "мес", "mailboxes": 999, "url": beget_url("blog")},
+                {"code": "start", "title": "Start", "price_rub": 405, "period": "мес", "mailboxes": 999, "url": beget_url("start")},
+                {"code": "noviy", "title": "Новый", "price_rub": 729, "period": "мес", "mailboxes": 999, "url": beget_url("noviy")},
             ],
             "compliant_152fz": True,
             "data_in_russia": True,
