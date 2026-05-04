@@ -95,7 +95,7 @@ def audit(cur, admin_id: int, action: str, target_user_id=None, details: str = "
     """Логирование действий админа в auth_audit_log."""
     try:
         cur.execute(
-            f"INSERT INTO {SCHEMA}.auth_audit_log (user_id, action, success, details, ip_address) "
+            f"INSERT INTO {SCHEMA}.auth_audit_log (user_id, event_type, success, details, ip_address) "
             f"VALUES (%s, %s, TRUE, %s, %s)",
             (admin_id, f"admin.{action}",
              json.dumps({"target_user_id": target_user_id, "info": details}, ensure_ascii=False),
@@ -159,16 +159,16 @@ def handler(event: dict, context) -> dict:
 
             # Активность за 24ч
             cur.execute(f"""
-                SELECT action, COUNT(*) FROM {SCHEMA}.auth_audit_log
+                SELECT event_type, COUNT(*) FROM {SCHEMA}.auth_audit_log
                 WHERE created_at >= NOW() - INTERVAL '24 hours'
-                GROUP BY action ORDER BY 2 DESC LIMIT 20
+                GROUP BY event_type ORDER BY 2 DESC LIMIT 20
             """)
             activity = [{"action": r[0], "count": r[1]} for r in cur.fetchall()]
 
             # Failed logins за 24ч (подозрительно)
             cur.execute(f"""
                 SELECT COUNT(*) FROM {SCHEMA}.auth_audit_log
-                WHERE action = 'login' AND success = FALSE
+                WHERE event_type = 'login' AND success = FALSE
                   AND created_at >= NOW() - INTERVAL '24 hours'
             """)
             failed_logins_24h = cur.fetchone()[0]
@@ -251,7 +251,7 @@ def handler(event: dict, context) -> dict:
                 return resp(404, {"error": "Пользователь не найден"}, event)
             # Последние 30 записей audit-log
             cur.execute(
-                f"""SELECT action, success, ip_address, user_agent, details, created_at
+                f"""SELECT event_type, success, ip_address, user_agent, details, created_at
                     FROM {SCHEMA}.auth_audit_log WHERE user_id = %s
                     ORDER BY created_at DESC LIMIT 30""",
                 (uid,),
@@ -363,7 +363,7 @@ def handler(event: dict, context) -> dict:
             cur = conn.cursor()
             where = "WHERE success = FALSE" if only_failed else ""
             cur.execute(
-                f"""SELECT a.id, a.user_id, u.email, a.action, a.success,
+                f"""SELECT a.id, a.user_id, u.email, a.event_type, a.success,
                        a.ip_address, a.user_agent, a.details, a.created_at
                     FROM {SCHEMA}.auth_audit_log a
                     LEFT JOIN {SCHEMA}.users u ON u.id = a.user_id
