@@ -7,7 +7,7 @@ interface Props {
 
 export function ChannelsGrid({ channels }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {channels.map((c) => (
         <div key={c.id} className="glass rounded-2xl p-4 metric-card relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 opacity-10 blur-2xl rounded-full"

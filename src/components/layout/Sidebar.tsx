@@ -11,21 +11,40 @@ interface SidebarProps {
   onLoginClick?: () => void;
   onRegisterClick?: () => void;
   onSearchClick?: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const PUBLIC_PAGES: Page[] = ["dashboard", "pricing", "mailbox"];
 
 export default function Sidebar({
   page, setPage, collapsed, setCollapsed, onLoginClick, onRegisterClick, onSearchClick,
+  mobileOpen = false, onMobileClose,
 }: SidebarProps) {
   const { user, logout } = useAuth();
   const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
 
+  const handleNav = (p: Page) => {
+    setPage(p);
+    onMobileClose?.();
+  };
+
   return (
-    <aside
-      className="sidebar-shell flex flex-col border-r border-border transition-all duration-300 flex-shrink-0 relative"
-      style={{ width: collapsed ? 60 : 220 }}
-    >
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      <aside
+        className={`sidebar-shell flex flex-col border-r border-border transition-all duration-300 flex-shrink-0 fixed md:relative inset-y-0 left-0 z-50 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+        style={{ width: collapsed ? 60 : 260 }}
+      >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-border">
         <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -79,7 +98,7 @@ export default function Sidebar({
           return (
             <button
               key={item.id}
-              onClick={() => setPage(item.id)}
+              onClick={() => handleNav(item.id)}
               className={`nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                 active
                   ? "active font-semibold"
@@ -196,6 +215,7 @@ export default function Sidebar({
           )}
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -86,11 +86,11 @@ export function PaymentModal({ open, onClose, planId, planName, planColor, amoun
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 fade-in-up"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 fade-in-up overflow-y-auto"
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
       onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl glass overflow-hidden shadow-2xl"
+        className="w-full max-w-md rounded-2xl glass overflow-hidden shadow-2xl my-auto max-h-[calc(100vh-1.5rem)] overflow-y-auto"
         style={{ border: `2px solid ${planColor}40` }}>
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-border"

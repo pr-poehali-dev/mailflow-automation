@@ -26,17 +26,17 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
   ];
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="fade-in-up flex items-start justify-between">
+    <div className="space-y-6 p-4 sm:p-6">
+      <div className="fade-in-up flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold gradient-text">Добро пожаловать 👋</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Добро пожаловать 👋</h1>
+          <p className="text-muted-foreground text-xs sm:text-base mt-1">
             {new Date().toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · Всё работает штатно
           </p>
         </div>
         <button
           onClick={() => setPage("campaigns")}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white w-full sm:w-auto"
           style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Plus" size={15} />
           Новая кампания
@@ -173,7 +173,7 @@ export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((s, i) => (
           <div key={i} className={`metric-card glass rounded-2xl p-4 fade-in-up-delay-${i + 1} relative overflow-hidden`}>
             <div className="absolute inset-0 opacity-10 rounded-2xl" style={{ background: `radial-gradient(circle at 80% 20%, ${s.color}, transparent 70%)` }} />

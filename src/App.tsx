@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Page } from "@/data/mockData";
 import Sidebar from "@/components/layout/Sidebar";
+import Icon from "@/components/ui/icon";
 import Footer from "@/components/layout/Footer";
 import Seo from "@/components/Seo";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -77,6 +78,7 @@ function MainApp() {
   const { user, initialized } = useAuth();
   const [page, setPage] = useState<Page>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [verifyToken, setVerifyToken] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -163,9 +165,35 @@ function MainApp() {
         onLoginClick={() => { setAuthMode("login"); setAuthReason(undefined); setAuthOpen(true); }}
         onRegisterClick={() => { setAuthMode("register"); setAuthReason(undefined); setAuthOpen(true); }}
         onSearchClick={() => setPaletteOpen(true)}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
       />
 
-      <main className="flex-1 overflow-y-auto relative" key={page}>
+      <main className="flex-1 overflow-y-auto relative w-full" key={page}>
+        {/* Мобильная шапка с бургером */}
+        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-border bg-background/95 backdrop-blur">
+          <button
+            onClick={() => setMobileNavOpen(true)}
+            className="p-2 -ml-2 rounded-lg hover:bg-secondary"
+            aria-label="Открыть меню"
+          >
+            <Icon name="Menu" size={22} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
+              <Icon name="Zap" size={14} className="text-white" />
+            </div>
+            <span className="font-bold text-sm gradient-text tracking-tight">MAIL-KA</span>
+          </div>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="p-2 -mr-2 rounded-lg hover:bg-secondary"
+            aria-label="Поиск"
+          >
+            <Icon name="Search" size={20} />
+          </button>
+        </div>
         <Seo page={page} />
         <div className="pointer-events-none fixed top-0 left-1/3 w-96 h-96 rounded-full opacity-30 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(139,92,246,0.15), transparent)" }} />
@@ -179,7 +207,7 @@ function MainApp() {
           ) : (
             <>
               <EmailVerifyBanner />
-              <div className="px-6 pt-4">
+              <div className="px-4 sm:px-6 pt-4">
                 <Breadcrumbs page={page} setPage={guardedSetPage} />
               </div>
               {pageMap[page]}

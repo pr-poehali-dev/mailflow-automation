@@ -82,12 +82,12 @@ export function AuthModal({ open, onClose, initialMode = "register", reason }: P
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 fade-in-up"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 fade-in-up overflow-y-auto"
       style={{ background: "rgba(10, 10, 22, 0.75)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <div
-        className="glass rounded-3xl w-full max-w-md relative overflow-hidden"
+        className="glass rounded-3xl w-full max-w-md relative overflow-hidden my-auto max-h-[calc(100vh-1.5rem)] overflow-y-auto"
         style={{ border: "1px solid rgba(139,92,246,0.25)", boxShadow: "0 25px 80px rgba(139,92,246,0.25)" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -106,7 +106,7 @@ export function AuthModal({ open, onClose, initialMode = "register", reason }: P
           <Icon name="X" size={14} />
         </button>
 
-        <div className="relative p-7">
+        <div className="relative p-5 sm:p-7">
           {/* Header */}
           <div className="text-center mb-5">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"

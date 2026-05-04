@@ -124,9 +124,9 @@ export default function SecurityPage() {
   }
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {/* Header */}
-      <div className="fade-in-up flex items-center justify-between flex-wrap gap-3">
+      <div className="fade-in-up flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Icon name="ShieldCheck" size={22} style={{ color: "#10b981" }} />

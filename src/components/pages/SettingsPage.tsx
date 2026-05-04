@@ -4,7 +4,7 @@ import Icon from "@/components/ui/icon";
 export function SettingsPage() {
   const [twofa, setTwofa] = useState(false);
   return (
-    <div className="p-6 space-y-5 max-w-2xl">
+    <div className="p-4 sm:p-6 space-y-5 max-w-2xl">
       <div className="fade-in-up">
         <h1 className="text-2xl font-bold">Настройки</h1>
         <p className="text-muted-foreground text-sm mt-0.5">Профиль, безопасность, API</p>

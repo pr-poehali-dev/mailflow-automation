@@ -43,7 +43,7 @@ export function Integrations() {
   const usagePercent = status?.daily_limit ? Math.min(100, ((status?.today_sent || 0) / status.daily_limit) * 100) : 0;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {showWizard && <SmtpWizard onClose={() => { setShowWizard(false); loadStatus(); }} onSaved={loadStatus} currentStatus={status} />}
 
       <div className="fade-in-up flex items-start justify-between flex-wrap gap-3">

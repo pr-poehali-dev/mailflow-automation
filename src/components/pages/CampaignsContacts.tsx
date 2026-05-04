@@ -58,17 +58,17 @@ export function Campaigns() {
   };
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="fade-in-up flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="fade-in-up flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Кампании</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold">Кампании</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
             {loading ? "Загрузка..." : `${campaigns.length} кампаний · Email-рассылки, триггеры, A/B-тесты`}
           </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white w-full sm:w-auto"
           style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
           <Icon name="Plus" size={15} />
           Создать кампанию
@@ -146,7 +146,7 @@ export function Campaigns() {
             </button>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
                 <th className="text-left px-5 py-3">Кампания</th>
@@ -188,7 +188,7 @@ export function Campaigns() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>
@@ -272,25 +272,26 @@ export function Contacts() {
   };
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="fade-in-up flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="fade-in-up flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Контакты</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold">Контакты</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
             {loading ? "Загрузка..." : `${contacts.length} контактов · 5 сегментов`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
           <button
             onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass hover:bg-white/8 transition-colors">
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass hover:bg-white/8 transition-colors">
             <Icon name="Upload" size={15} />
-            Импорт CSV
+            <span className="hidden sm:inline">Импорт CSV</span>
+            <span className="sm:hidden">CSV</span>
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
             style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
             <Icon name="UserPlus" size={15} />
             Добавить
@@ -389,7 +390,7 @@ export function Contacts() {
             </button>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
                 <th className="text-left px-5 py-3">Контакт</th>
@@ -432,7 +433,7 @@ export function Contacts() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>

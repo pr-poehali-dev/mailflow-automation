@@ -3,8 +3,8 @@ import { Page, mockTemplates } from "@/data/mockData";
 
 export function Templates({ setPage }: { setPage: (p: Page) => void }) {
   return (
-    <div className="p-6 space-y-5">
-      <div className="fade-in-up flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="fade-in-up flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Шаблоны</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Библиотека готовых писем</p>

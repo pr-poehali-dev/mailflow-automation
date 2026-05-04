@@ -97,7 +97,7 @@ export function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () =>
 
         {/* Step 1 — Provider */}
         {step === 1 && (
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div>
               <h3 className="font-semibold text-sm mb-1">Выбери почтовый сервис</h3>
               <p className="text-xs text-muted-foreground">MAIL-KA умеет отправлять через любую почту. Выбери своего провайдера.</p>
@@ -134,7 +134,7 @@ export function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () =>
 
         {/* Step 2 — Credentials */}
         {step === 2 && (
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div>
               <h3 className="font-semibold text-sm mb-1">Доступы и параметры</h3>
               <p className="text-xs text-muted-foreground">Эти данные сохраняются в твоей БД зашифровано</p>
@@ -218,7 +218,7 @@ export function SmtpWizard({ onClose, onSaved, currentStatus }: { onClose: () =>
 
         {/* Step 3 — Test */}
         {step === 3 && (
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="text-center py-6">
               {testing ? (
                 <>

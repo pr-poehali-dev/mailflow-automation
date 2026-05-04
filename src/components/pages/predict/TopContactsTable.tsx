@@ -10,7 +10,7 @@ export function TopContactsTable() {
         </div>
         <span className="text-xs text-muted-foreground">обновлено сегодня</span>
       </div>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="w-full text-sm min-w-[500px]">
         <thead>
           <tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
             <th className="text-left px-5 py-3">Контакт</th>
@@ -52,7 +52,7 @@ export function TopContactsTable() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </div>
   );
 }

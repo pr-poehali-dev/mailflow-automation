@@ -34,7 +34,7 @@ export function PlanCards({ plans, yearly, setYearly, calcPrice, calcSaving, onS
       </div>
 
       {/* Plans */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-7xl mx-auto">
         {plans.map((plan, idx) => (
           <div key={plan.id}
             className={`relative rounded-2xl p-6 fade-in-up transition-all metric-card ${
@@ -70,7 +70,7 @@ export function PlanCards({ plans, yearly, setYearly, calcPrice, calcSaving, onS
 
             <div className="mb-5">
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold" style={{ color: plan.color }}>
+                <span className="text-3xl sm:text-4xl font-bold" style={{ color: plan.color }}>
                   {calcPrice(plan.monthly).toLocaleString("ru-RU")}
                 </span>
                 <span className="text-sm text-muted-foreground">₽/мес</span>

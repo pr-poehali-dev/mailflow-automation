@@ -26,7 +26,7 @@ export function Analytics() {
   const topCampaigns = [...campaigns].filter((c) => c.open_rate > 0).sort((a, b) => b.open_rate - a.open_rate).slice(0, 4);
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       <div className="fade-in-up">
         <h1 className="text-2xl font-bold">Аналитика</h1>
         <p className="text-muted-foreground text-sm mt-0.5">Доставка · Открытия · Клики · Отписки</p>

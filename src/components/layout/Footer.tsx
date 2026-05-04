@@ -11,7 +11,7 @@ export function Footer({ setPage }: Props) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-border/60 px-6 py-6 text-[11px] text-muted-foreground space-y-3"
+    <footer className="mt-12 border-t border-border/60 px-4 sm:px-6 py-6 text-[11px] text-muted-foreground space-y-3"
       style={{ background: "linear-gradient(180deg, transparent, rgba(139,92,246,0.03))" }}>
 
       {/* Главная строка */}

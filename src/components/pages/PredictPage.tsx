@@ -6,7 +6,7 @@ import { TopContactsTable } from "./predict/TopContactsTable";
 
 export function PredictPage() {
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       <div className="fade-in-up flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

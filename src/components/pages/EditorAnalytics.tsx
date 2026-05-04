@@ -131,7 +131,7 @@ export function EmailEditor() {
   };
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {needVerify && (
         <EditorVerifyBanner
           email={user?.email || ""}
@@ -140,7 +140,7 @@ export function EmailEditor() {
           onResend={handleResendVerify}
         />
       )}
-      <div className="fade-in-up flex items-center justify-between flex-wrap gap-3">
+      <div className="fade-in-up flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">Редактор писем</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Переменные · HTML-шаблон · Реальная отправка</p>

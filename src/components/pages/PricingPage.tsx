@@ -21,7 +21,7 @@ export function PricingPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Hero */}
       <div className="text-center fade-in-up max-w-3xl mx-auto pt-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4"
@@ -29,8 +29,8 @@ export function PricingPage() {
           <Icon name="Sparkles" size={12} />
           7 дней бесплатно · без карты · без обязательств
         </div>
-        <h1 className="text-4xl font-bold gradient-text mb-3">Простые и честные тарифы</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold gradient-text mb-3">Простые и честные тарифы</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Никаких скрытых платежей. Все AI-функции и автоматизации с первого дня. Отмена в 1 клик.
         </p>
       </div>

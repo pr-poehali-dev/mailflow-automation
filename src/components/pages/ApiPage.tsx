@@ -164,7 +164,7 @@ export function ApiPage() {
   ] as const;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {/* Header */}
       <div className="fade-in-up flex items-start justify-between">
         <div>
@@ -250,7 +250,7 @@ export function ApiPage() {
                 <div className="text-sm">Ключей ещё нет</div>
               </div>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full text-sm min-w-[500px]">
                 <thead>
                   <tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
                     <th className="text-left px-5 py-3">Название</th>
@@ -285,7 +285,7 @@ export function ApiPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </div>
         </div>
