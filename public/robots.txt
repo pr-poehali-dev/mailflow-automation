@@ -1,29 +1,94 @@
+# robots.txt для MAIL-KA — https://mail-ka.ru
+# Документация: https://yandex.ru/support/webmaster/controlling-robot/robots-txt.html
+
+# ─── Все поисковики по умолчанию ─────────────────────────────────────────────
 User-agent: *
-Allow: /
+Disallow: /api/
+Disallow: /backend/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /*?admin=
+Disallow: /*?payment=
+Disallow: /*?verify_email=
+
+# ─── Google ──────────────────────────────────────────────────────────────────
+User-agent: Googlebot
 Disallow: /api/
 Disallow: /backend/
 Disallow: /admin
 Disallow: /admin/
 
-User-agent: Googlebot
-Allow: /
+User-agent: Googlebot-Image
+Disallow: /api/
 Disallow: /admin
-Disallow: /admin/
 
+# ─── Яндекс (главный приоритет) ──────────────────────────────────────────────
 User-agent: Yandex
-Allow: /
+Disallow: /api/
+Disallow: /backend/
 Disallow: /admin
 Disallow: /admin/
-Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&payment&verify_email&admin
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
+Clean-param: payment&verify_email&admin&ref
+Clean-param: yclid&gclid&fbclid&_openstat&from
 
+User-agent: YandexBot
+Disallow: /api/
+Disallow: /backend/
+Disallow: /admin
+
+User-agent: YandexImages
+Disallow: /api/
+Disallow: /admin
+
+# ─── Bing ────────────────────────────────────────────────────────────────────
 User-agent: Bingbot
-Allow: /
+Disallow: /api/
+Disallow: /backend/
+Disallow: /admin
+Disallow: /admin/
 
+# ─── Соцсети — нужны для og:image превью ─────────────────────────────────────
 User-agent: Twitterbot
-Allow: /
+Disallow: /api/
+Disallow: /admin
 
 User-agent: facebookexternalhit
-Allow: /
+Disallow: /api/
+Disallow: /admin
 
+User-agent: TelegramBot
+Disallow: /api/
+Disallow: /admin
+
+User-agent: vkShare
+Disallow: /api/
+Disallow: /admin
+
+# ─── AI-скраперы — запрещаем обучение моделей на нашем контенте ──────────────
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# ─── Карта сайта ─────────────────────────────────────────────────────────────
 Sitemap: https://mail-ka.ru/sitemap.xml
-Host: mail-ka.ru
