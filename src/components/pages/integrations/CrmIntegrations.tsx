@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import {
   fetchCrmConnections, getCrmAuthorizeUrl, disconnectCrm,
-  CrmConnection, CrmProvider,
+  fetchCrmSyncStatus, runCrmSync,
+  CrmConnection, CrmProvider, CrmSyncStatus, CrmSyncResult,
 } from "@/api/crm";
 
 interface CrmCard {
@@ -106,12 +107,22 @@ export default function CrmIntegrations() {
   const [domain, setDomain] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState("");
+  const [syncStatus, setSyncStatus] = useState<Record<string, CrmSyncStatus>>({});
+  const [syncing, setSyncing] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<CrmSyncResult | null>(null);
 
   const load = async () => {
     setLoading(true);
     try {
       const items = await fetchCrmConnections();
       setConnections(items);
+      // Догружаем статус синхронизации для каждой OAuth-CRM
+      const statusEntries = await Promise.all(
+        items
+          .filter((c) => OAUTH_PROVIDERS.has(c.provider) && c.status === "active")
+          .map(async (c) => [c.provider, await fetchCrmSyncStatus(c.provider as CrmProvider)] as const),
+      );
+      setSyncStatus(Object.fromEntries(statusEntries));
     } catch {
       setConnections([]);
     }
@@ -119,6 +130,27 @@ export default function CrmIntegrations() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const handleSync = async (id: string) => {
+    setSyncing(id);
+    setSyncResult(null);
+    const res = await runCrmSync(id as CrmProvider);
+    setSyncResult(res);
+    setSyncing(null);
+    // Обновим статус
+    const status = await fetchCrmSyncStatus(id as CrmProvider);
+    setSyncStatus((prev) => ({ ...prev, [id]: status }));
+  };
+
+  const formatSyncTime = (iso?: string | null) => {
+    if (!iso) return "ещё не было";
+    const d = new Date(iso);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return "только что";
+    if (diff < 3600) return `${Math.floor(diff / 60)} мин назад`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} ч назад`;
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
 
   // Слушаем сообщение из popup-окна OAuth
   useEffect(() => {
@@ -219,6 +251,12 @@ export default function CrmIntegrations() {
               <div className="text-[11px] text-muted-foreground line-clamp-2 mb-3">
                 {p.description}
               </div>
+              {connected && OAUTH_PROVIDERS.has(p.id) && syncStatus[p.id]?.last_sync_at && (
+                <div className="text-[10px] text-muted-foreground mb-2 flex items-center gap-1">
+                  <Icon name="RefreshCw" size={10} />
+                  Контактов: {syncStatus[p.id].last_sync_count || 0} · {formatSyncTime(syncStatus[p.id].last_sync_at)}
+                </div>
+              )}
               <div className="text-xs font-semibold flex items-center gap-1"
                 style={{ color: p.color }}>
                 {connected ? "Управлять" : "Подключить"}
@@ -303,18 +341,60 @@ export default function CrmIntegrations() {
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                {isConnected(activePopup.id) && (
+                  <div className="rounded-xl p-3 mb-4 text-xs space-y-2"
+                    style={{ background: `${activePopup.color}08`, border: `1px solid ${activePopup.color}20` }}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Последняя синхронизация:</span>
+                      <span className="font-semibold">
+                        {formatSyncTime(syncStatus[activePopup.id]?.last_sync_at)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Контактов в базе:</span>
+                      <span className="font-semibold">
+                        {syncStatus[activePopup.id]?.last_sync_count ?? 0}
+                      </span>
+                    </div>
+                    {syncResult && syncing === null && (
+                      <div className="pt-2 border-t border-border">
+                        {syncResult.ok ? (
+                          <div style={{ color: "#10b981" }}>
+                            ✓ Добавлено: {syncResult.inserted}, обновлено: {syncResult.updated}
+                            {syncResult.skipped ? `, пропущено: ${syncResult.skipped}` : ""}
+                          </div>
+                        ) : (
+                          <div style={{ color: "#ef4444" }}>{syncResult.error || "Не удалось"}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2">
                   {isConnected(activePopup.id) ? (
-                    <button
-                      onClick={() => handleDisconnect(activePopup.id)}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/30">
-                      Отключить
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleSync(activePopup.id)}
+                        disabled={syncing === activePopup.id}
+                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+                        style={{ background: `linear-gradient(135deg, ${activePopup.color}, #06b6d4)` }}>
+                        {syncing === activePopup.id
+                          ? <Icon name="Loader2" size={14} className="animate-spin" />
+                          : <Icon name="RefreshCw" size={14} />}
+                        {syncing === activePopup.id ? "Синхронизируем…" : "Синхронизировать сейчас"}
+                      </button>
+                      <button
+                        onClick={() => handleDisconnect(activePopup.id)}
+                        className="w-full py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/30">
+                        Отключить
+                      </button>
+                    </>
                   ) : (
                     <button
                       onClick={() => startOAuth(activePopup)}
                       disabled={connecting}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+                      className="w-full py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
                       style={{ background: `linear-gradient(135deg, ${activePopup.color}, #06b6d4)` }}>
                       {connecting && <Icon name="Loader2" size={14} className="animate-spin" />}
                       Войти и подключить
@@ -323,7 +403,9 @@ export default function CrmIntegrations() {
                 </div>
 
                 <div className="text-[10px] text-muted-foreground text-center mt-3">
-                  Среднее время настройки: 2 минуты · OAuth 2.0
+                  {isConnected(activePopup.id)
+                    ? "Контакты подтянутся в раздел «Контакты» с тегом CRM"
+                    : "Среднее время настройки: 2 минуты · OAuth 2.0"}
                 </div>
               </>
             )}

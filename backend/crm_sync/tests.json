@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "status без токена -> 401",
+      "method": "GET",
+      "path": "/?action=status&provider=bitrix24",
+      "expectedStatus": 401
+    },
+    {
+      "name": "sync без токена -> 401",
+      "method": "POST",
+      "path": "/?action=sync&provider=amocrm",
+      "expectedStatus": 401
+    }
+  ]
+}
