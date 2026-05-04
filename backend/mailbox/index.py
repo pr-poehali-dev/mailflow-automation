@@ -73,12 +73,21 @@ def build_providers():
     yandex_ref = os.environ.get("YANDEX360_REFERRAL_CODE", "").strip()
 
     def beget_url(plan: str) -> str:
-        base = f"https://beget.com/ru/mail?plan={plan}"
-        return f"{base}&ref={beget_aff}" if beget_aff else base
+        # Реальная страница тарифов почты Beget. plan передаём как UTM-метку
+        # для аналитики, а не как несуществующий query-параметр.
+        base = "https://beget.com/ru/mail"
+        params = [f"utm_source=mailka", f"utm_medium=cabinet", f"utm_campaign=mailbox_{plan}"]
+        if beget_aff:
+            params.append(f"id={beget_aff}")
+        return base + "?" + "&".join(params)
 
     def yandex_url(plan: str) -> str:
-        base = f"https://360.yandex.ru/business/tariffs?plan={plan}"
-        return f"{base}&ref={yandex_ref}" if yandex_ref else base
+        # Прямая ссылка на тарифы Яндекс 360 для бизнеса
+        base = "https://360.yandex.ru/business/"
+        params = [f"utm_source=mailka", f"utm_medium=cabinet", f"utm_campaign=mailbox_{plan}"]
+        if yandex_ref:
+            params.append(f"ref={yandex_ref}")
+        return base + "?" + "&".join(params)
 
     return [
         {
@@ -143,8 +152,8 @@ def build_providers():
                 "Соответствие 152-ФЗ",
             ],
             "plans": [
-                {"code": "start", "title": "Старт", "price_rub": 290, "period": "мес/польз.", "mailboxes": 1, "url": "https://biz.mail.ru/mail/"},
-                {"code": "biz", "title": "Бизнес", "price_rub": 590, "period": "мес/польз.", "mailboxes": 1, "url": "https://biz.mail.ru/mail/"},
+                {"code": "start", "title": "Старт", "price_rub": 290, "period": "мес/польз.", "mailboxes": 1, "url": "https://biz.mail.ru/?utm_source=mailka&utm_medium=cabinet&utm_campaign=mailbox_start"},
+                {"code": "biz", "title": "Бизнес", "price_rub": 590, "period": "мес/польз.", "mailboxes": 1, "url": "https://biz.mail.ru/?utm_source=mailka&utm_medium=cabinet&utm_campaign=mailbox_biz"},
             ],
             "compliant_152fz": True,
             "data_in_russia": True,

@@ -28,9 +28,11 @@ export default function MailboxStorePage() {
       .finally(() => setLoading(false));
   }, [user]);
 
-  const onClickPlan = async (p: MailboxProvider, plan: MailboxPlan) => {
-    await trackClick(p.provider, plan.code, plan.url);
+  const onClickPlan = (p: MailboxProvider, plan: MailboxPlan) => {
+    // Сначала открываем вкладку синхронно (иначе popup-blocker сработает),
+    // потом фоном пишем клик в аналитику.
     window.open(plan.url, "_blank", "noopener,noreferrer");
+    trackClick(p.provider, plan.code, plan.url);
   };
 
   return (
