@@ -9,6 +9,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import EmailVerifyBanner from "@/components/auth/EmailVerifyBanner";
 import EmailVerifyResult from "@/components/auth/EmailVerifyResult";
 import CommandPalette from "@/components/search/CommandPalette";
+import AiConsultant from "@/components/AiConsultant";
 import AdminApp from "@/admin/AdminApp";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -200,6 +201,8 @@ function MainApp() {
         onClose={() => setPaletteOpen(false)}
         setPage={guardedSetPage}
       />
+
+      <AiConsultant />
     </div>
   );
 }

@@ -264,4 +264,51 @@ def handler(event: dict, context) -> dict:
         except Exception:
             return resp(200, {"ok": True, "raw": result["text"]})
 
+    # ── AI-консультант по сайту MAIL-KA ──────────────────────────────────────
+    if action == "consultant":
+        message = body.get("message", "").strip()
+        history = body.get("history", [])
+        if not message:
+            return resp(400, {"error": "Передай 'message' с вопросом пользователя"})
+
+        system = (
+            "Ты — Юра, дружелюбный ИИ-консультант сервиса email-маркетинга MAIL-KA. "
+            "Отвечаешь кратко (2-4 предложения), по-русски, на «ты», без воды. "
+            "Помогаешь с настройкой рассылок, тарифами, импортом контактов, доменом, DKIM, "
+            "автоматизациями, шаблонами и оплатой. \n\n"
+            "Что есть в MAIL-KA:\n"
+            "• Тарифы: Старт 990₽/мес (до 5 000 контактов), Бизнес 2 990₽/мес (до 50 000), Enterprise 7 990₽/мес (безлимит). 7 дней бесплатно без карты, скидка 30% при оплате за год.\n"
+            "• Каналы: Email, SMS, Telegram, WhatsApp, Web/Mobile Push, Viber, VK — всё в одной кампании.\n"
+            "• ИИ-копирайтер на GPT-4o, Claude 3.5, DeepSeek — генерит тексты, темы, проверяет на спам, прогнозирует open rate.\n"
+            "• Автоматизации (PRO): welcome-серии, брошенная корзина, реактивация, дни рождения.\n"
+            "• Predictive AI: LTV-прогноз, churn risk, лучшее время отправки.\n"
+            "• 50+ готовых шаблонов писем, адаптивная вёрстка.\n"
+            "• Корпоративная почта: витрина с провайдерами Beget и Яндекс 360 (раздел «Корпоративная почта»).\n"
+            "• Интеграции: Bitrix24, amoCRM, Telegram, webhooks, REST API.\n"
+            "• Безопасность: 152-ФЗ, серверы в РФ, DKIM, SPF, антиспам.\n\n"
+            "Как пользоваться:\n"
+            "1) Регистрация — кнопка справа сверху, вход по email + код на почту.\n"
+            "2) Импорт контактов — раздел «Контакты» → «Импорт CSV».\n"
+            "3) Создать рассылку — раздел «Кампании» → «Новая кампания» или «ИИ: написать письмо» в редакторе.\n"
+            "4) Подключить домен — раздел «Настройки» → «Домены и DKIM» (нужен доступ к DNS).\n"
+            "5) Тарифы и оплата — раздел «Тарифы», оплата ЮKassa (карты, СБП).\n\n"
+            "Если вопрос не про MAIL-KA — мягко возвращай к теме. "
+            "Если не знаешь точного ответа — предложи написать в поддержку через чат или email support@mail-ka.ru. "
+            "НЕ выдумывай функции, которых нет в списке выше. НЕ обещай скидки сверх тех, что указаны."
+        )
+
+        messages = [{"role": "system", "content": system}]
+        if isinstance(history, list):
+            for h in history[-8:]:
+                role = h.get("role")
+                content = h.get("content", "").strip()
+                if role in ("user", "assistant") and content:
+                    messages.append({"role": role, "content": content[:1000]})
+        messages.append({"role": "user", "content": message[:2000]})
+
+        result = call_openai(messages, temperature=0.6, model=chosen_model)
+        if not result["ok"]:
+            return resp(502, result)
+        return resp(200, {"ok": True, "reply": result["text"], "tokens": result["tokens"]})
+
     return resp(404, {"error": f"Неизвестный action: {action}"})

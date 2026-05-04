@@ -1,11 +1,24 @@
 {
   "tests": [
     {
-      "name": "POST без action — 400",
+      "name": "POST generate без brief — 400",
       "method": "POST",
       "path": "/?action=generate",
       "body": {},
       "expectedStatus": 400
+    },
+    {
+      "name": "POST consultant без message — 400",
+      "method": "POST",
+      "path": "/?action=consultant",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
     }
   ]
 }
