@@ -73,21 +73,25 @@ def build_providers():
     yandex_ref = os.environ.get("YANDEX360_REFERRAL_CODE", "").strip()
 
     def beget_url(plan: str) -> str:
-        # Реальная страница тарифов почты Beget. plan передаём как UTM-метку
-        # для аналитики, а не как несуществующий query-параметр.
-        base = "https://beget.com/ru/mail"
-        params = [f"utm_source=mailka", f"utm_medium=cabinet", f"utm_campaign=mailbox_{plan}"]
+        # У Beget партнёрский PIN идёт В ПУТЬ URL: https://beget.com/pPIN/mail
+        # PIN может быть в формате "p123456" или просто "123456" — нормализуем.
+        utm = f"utm_source=mailka&utm_medium=cabinet&utm_campaign=mailbox_{plan}"
         if beget_aff:
-            params.append(f"id={beget_aff}")
-        return base + "?" + "&".join(params)
+            pin = beget_aff if beget_aff.startswith("p") else f"p{beget_aff}"
+            return f"https://beget.com/{pin}/mail?{utm}"
+        return f"https://beget.com/ru/mail?{utm}"
 
     def yandex_url(plan: str) -> str:
-        # Прямая ссылка на тарифы Яндекс 360 для бизнеса
-        base = "https://360.yandex.ru/business/"
-        params = [f"utm_source=mailka", f"utm_medium=cabinet", f"utm_campaign=mailbox_{plan}"]
+        # Если в секрете лежит полный URL (https://...) — используем его как есть.
+        # Иначе — формируем стандартную ссылку на Яндекс 360.
+        utm = f"utm_source=mailka&utm_medium=cabinet&utm_campaign=mailbox_{plan}"
+        if yandex_ref.startswith("http://") or yandex_ref.startswith("https://"):
+            sep = "&" if "?" in yandex_ref else "?"
+            return f"{yandex_ref}{sep}{utm}"
+        base = f"https://360.yandex.ru/business/?{utm}"
         if yandex_ref:
-            params.append(f"ref={yandex_ref}")
-        return base + "?" + "&".join(params)
+            base += f"&ref={yandex_ref}"
+        return base
 
     return [
         {
