@@ -1,4 +1,5 @@
 {
+  "crm-oauth": "https://functions.poehali.dev/de5e6f01-9cf1-4347-af58-eb3e96d35506",
   "admin-bootstrap": "https://functions.poehali.dev/bdc1af8b-5235-45c0-9945-d2e08ddb67e1",
   "mailbox": "https://functions.poehali.dev/26b9a029-901f-4151-86a1-b0eec499ac59",
   "admin": "https://functions.poehali.dev/1e03fe01-5cd5-4f97-842a-6ab768806f2c",

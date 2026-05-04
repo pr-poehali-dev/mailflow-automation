@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "list без токена -> 401",
+      "method": "GET",
+      "path": "/?action=list",
+      "expectedStatus": 401
+    },
+    {
+      "name": "authorize без токена -> 401",
+      "method": "GET",
+      "path": "/?action=authorize&provider=amocrm",
+      "expectedStatus": 401
+    },
+    {
+      "name": "callback без state -> 400",
+      "method": "GET",
+      "path": "/?action=callback",
+      "expectedStatus": 400
+    }
+  ]
+}

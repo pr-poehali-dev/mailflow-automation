@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
+import {
+  fetchCrmConnections, getCrmAuthorizeUrl, disconnectCrm,
+  CrmConnection, CrmProvider,
+} from "@/api/crm";
 
-interface CrmProvider {
+interface CrmCard {
   id: string;
   name: string;
   description: string;
@@ -10,9 +14,10 @@ interface CrmProvider {
   features: string[];
   authType: "oauth" | "token" | "webhook";
   popular?: boolean;
+  needsDomain?: boolean;
 }
 
-const CRM_PROVIDERS: CrmProvider[] = [
+const CRM_LIST: CrmCard[] = [
   {
     id: "bitrix24",
     name: "Битрикс24",
@@ -22,6 +27,7 @@ const CRM_PROVIDERS: CrmProvider[] = [
     features: ["Контакты + сделки", "Триггеры по воронке", "Метки и теги", "Webhooks"],
     authType: "oauth",
     popular: true,
+    needsDomain: true,
   },
   {
     id: "amocrm",
@@ -91,18 +97,75 @@ const CRM_PROVIDERS: CrmProvider[] = [
   },
 ];
 
-export default function CrmIntegrations() {
-  const [connected, setConnected] = useState<Set<string>>(new Set());
-  const [activePopup, setActivePopup] = useState<CrmProvider | null>(null);
+const OAUTH_PROVIDERS: Set<string> = new Set(["bitrix24", "amocrm"]);
 
-  const handleConnect = (id: string) => {
-    setConnected(new Set([...connected, id]));
-    setActivePopup(null);
+export default function CrmIntegrations() {
+  const [connections, setConnections] = useState<CrmConnection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activePopup, setActivePopup] = useState<CrmCard | null>(null);
+  const [domain, setDomain] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState("");
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const items = await fetchCrmConnections();
+      setConnections(items);
+    } catch {
+      setConnections([]);
+    }
+    setLoading(false);
   };
-  const handleDisconnect = (id: string) => {
-    const next = new Set(connected);
-    next.delete(id);
-    setConnected(next);
+
+  useEffect(() => { load(); }, []);
+
+  // Слушаем сообщение из popup-окна OAuth
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "mk-oauth-success") {
+        load();
+        setActivePopup(null);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  const isConnected = (id: string) => connections.some((c) => c.provider === id && c.status === "active");
+  const getConnection = (id: string) => connections.find((c) => c.provider === id);
+
+  const startOAuth = async (card: CrmCard) => {
+    setConnecting(true);
+    setError("");
+    if (card.needsDomain && !domain.trim()) {
+      setError("Укажите адрес портала (например your-company.bitrix24.ru)");
+      setConnecting(false);
+      return;
+    }
+    const res = await getCrmAuthorizeUrl(card.id as CrmProvider, domain.trim() || undefined);
+    setConnecting(false);
+    if (!res.ok || !res.url) {
+      setError(res.error || "Не удалось начать авторизацию");
+      return;
+    }
+    const popup = window.open(res.url, "mk_oauth", "width=720,height=720");
+    if (!popup) {
+      setError("Разрешите всплывающие окна для подключения CRM");
+      return;
+    }
+    const tick = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(tick);
+        load();
+      }
+    }, 1000);
+  };
+
+  const handleDisconnect = async (id: string) => {
+    await disconnectCrm(id as CrmProvider);
+    await load();
+    setActivePopup(null);
   };
 
   return (
@@ -121,28 +184,32 @@ export default function CrmIntegrations() {
           </p>
         </div>
         <div className="text-xs text-muted-foreground">
-          Подключено: <span className="font-bold text-foreground">{connected.size}</span> из {CRM_PROVIDERS.length}
+          Подключено:{" "}
+          <span className="font-bold text-foreground">
+            {loading ? "…" : connections.filter((c) => c.status === "active").length}
+          </span>{" "}
+          из {CRM_LIST.length}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {CRM_PROVIDERS.map((p) => {
-          const isConnected = connected.has(p.id);
+        {CRM_LIST.map((p) => {
+          const connected = isConnected(p.id);
           return (
             <div key={p.id}
               className="relative rounded-2xl p-4 transition-all hover:scale-[1.02] cursor-pointer"
-              onClick={() => setActivePopup(p)}
+              onClick={() => { setActivePopup(p); setDomain(getConnection(p.id)?.domain || ""); setError(""); }}
               style={{
-                background: isConnected ? `${p.color}10` : "rgba(255,255,255,0.03)",
-                border: `1px solid ${isConnected ? `${p.color}40` : "var(--border)"}`,
+                background: connected ? `${p.color}10` : "rgba(255,255,255,0.03)",
+                border: `1px solid ${connected ? `${p.color}40` : "var(--border)"}`,
               }}>
-              {p.popular && !isConnected && (
+              {p.popular && !connected && (
                 <span className="absolute -top-2 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full text-white"
                   style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)" }}>
                   ТОП
                 </span>
               )}
-              {isConnected && (
+              {connected && (
                 <span className="absolute top-3 right-3">
                   <Icon name="CheckCircle" size={16} style={{ color: p.color }} />
                 </span>
@@ -154,7 +221,7 @@ export default function CrmIntegrations() {
               </div>
               <div className="text-xs font-semibold flex items-center gap-1"
                 style={{ color: p.color }}>
-                {isConnected ? "Настроить" : "Подключить"}
+                {connected ? "Управлять" : "Подключить"}
                 <Icon name="ArrowRight" size={11} />
               </div>
             </div>
@@ -197,32 +264,81 @@ export default function CrmIntegrations() {
               ))}
             </div>
 
-            {activePopup.authType === "oauth" && (
-              <div className="rounded-xl p-3 mb-4 text-xs"
-                style={{ background: `${activePopup.color}08`, border: `1px solid ${activePopup.color}25` }}>
-                <div className="flex items-start gap-2">
-                  <Icon name="Shield" size={14} style={{ color: activePopup.color }} className="flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-semibold mb-0.5">Авторизация через OAuth</div>
-                    <div className="text-muted-foreground">
-                      Войдёте в свой аккаунт {activePopup.name} в защищённом окне. Пароль не передаётся в MAIL-KA.
+            {OAUTH_PROVIDERS.has(activePopup.id) && (
+              <>
+                {activePopup.needsDomain && !isConnected(activePopup.id) && (
+                  <div className="mb-4">
+                    <label className="text-xs text-muted-foreground block mb-1.5">
+                      Адрес вашего портала
+                    </label>
+                    <input
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      placeholder="your-company.bitrix24.ru"
+                      className="w-full bg-background/60 border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-purple-500"
+                    />
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      Без https:// — только домен. Например: <code>mycompany.bitrix24.ru</code>
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-xl p-3 mb-4 text-xs"
+                  style={{ background: `${activePopup.color}08`, border: `1px solid ${activePopup.color}25` }}>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Shield" size={14} style={{ color: activePopup.color }} className="flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-semibold mb-0.5">Авторизация через OAuth 2.0</div>
+                      <div className="text-muted-foreground">
+                        Откроется официальное окно {activePopup.name}. Пароль не передаётся в MAIL-KA — только токен доступа.
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {error && (
+                  <div className="rounded-xl p-3 mb-3 text-xs"
+                    style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444" }}>
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  {isConnected(activePopup.id) ? (
+                    <button
+                      onClick={() => handleDisconnect(activePopup.id)}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/30">
+                      Отключить
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => startOAuth(activePopup)}
+                      disabled={connecting}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+                      style={{ background: `linear-gradient(135deg, ${activePopup.color}, #06b6d4)` }}>
+                      {connecting && <Icon name="Loader2" size={14} className="animate-spin" />}
+                      Войти и подключить
+                    </button>
+                  )}
+                </div>
+
+                <div className="text-[10px] text-muted-foreground text-center mt-3">
+                  Среднее время настройки: 2 минуты · OAuth 2.0
+                </div>
+              </>
             )}
 
-            {activePopup.authType === "token" && (
-              <div className="space-y-3 mb-4">
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1.5">API-ключ</label>
-                  <input type="password" placeholder="Вставьте токен из настроек CRM"
-                    className="w-full bg-background/60 border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-purple-500" />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1.5">Адрес сервера</label>
-                  <input placeholder={`https://your-company.${activePopup.id}.ru`}
-                    className="w-full bg-background/60 border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-purple-500" />
+            {activePopup.authType === "token" && !OAUTH_PROVIDERS.has(activePopup.id) && (
+              <div className="rounded-xl p-3 mb-4 text-xs space-y-2"
+                style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.25)" }}>
+                <div className="flex items-start gap-2">
+                  <Icon name="Clock" size={14} style={{ color: "#f59e0b" }} className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-semibold mb-0.5">Скоро — раскатываем по очереди</div>
+                    <div className="text-muted-foreground">
+                      OAuth для {activePopup.name} в разработке. Пока подключайте через Webhooks API в разделе «Программный интерфейс».
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -242,27 +358,6 @@ export default function CrmIntegrations() {
                 </button>
               </div>
             )}
-
-            <div className="flex gap-2">
-              {connected.has(activePopup.id) ? (
-                <button
-                  onClick={() => handleDisconnect(activePopup.id)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/30">
-                  Отключить
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleConnect(activePopup.id)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: `linear-gradient(135deg, ${activePopup.color}, #06b6d4)` }}>
-                  {activePopup.authType === "oauth" ? "Войти и подключить" : "Подключить"}
-                </button>
-              )}
-            </div>
-
-            <div className="text-[10px] text-muted-foreground text-center mt-3">
-              Среднее время настройки: 2 минуты
-            </div>
           </div>
         </div>
       )}

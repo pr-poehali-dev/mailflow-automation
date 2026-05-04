@@ -4,6 +4,7 @@ import App from './App'
 import AdminApp from './admin/AdminApp'
 import LegalPage from './legal/LegalPage'
 import UnsubscribePage from './legal/UnsubscribePage'
+import OauthCallback from './oauth/OauthCallback'
 import CookieBanner from './components/CookieBanner'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -37,11 +38,18 @@ try {
 
 const isLegal = path.startsWith("/legal/") || path === "/legal";
 const isUnsubscribe = path.startsWith("/unsubscribe");
+const isOauthCallback = path === "/oauth/callback" || path.startsWith("/oauth/callback");
 
 const root = createRoot(document.getElementById("root")!);
 
 if (isAdmin) {
   root.render(<AdminApp />);
+} else if (isOauthCallback) {
+  root.render(
+    <ThemeProvider>
+      <OauthCallback />
+    </ThemeProvider>
+  );
 } else if (isLegal) {
   root.render(
     <ThemeProvider>
