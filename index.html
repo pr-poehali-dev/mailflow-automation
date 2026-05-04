@@ -139,7 +139,9 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "MAIL-KA",
+      "alternateName": "Маилка",
       "url": "https://mail-ka.ru/",
+      "inLanguage": "ru-RU",
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://mail-ka.ru/?q={search_term_string}",
@@ -147,6 +149,91 @@
       }
     }
     </script>
+
+    <!-- JSON-LD FAQ — даёт расширенный сниппет в Яндексе и Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Что такое MAIL-KA?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "MAIL-KA — российская платформа email-маркетинга с ИИ-копирайтером на GPT-4o и Claude, визуальными автоматизациями, omnichannel-рассылками (Email, SMS, Telegram, Push, WhatsApp, Viber, VK) и predictive-аналитикой. Серверы в РФ, оплата в рублях, соответствие 152-ФЗ."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Сколько стоят рассылки в MAIL-KA?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Старт — 990 ₽/мес (до 5 000 контактов, 50 000 писем). Бизнес — 2 990 ₽/мес (до 25 000 контактов, безлимит писем, автоматизации). Enterprise — 7 990 ₽/мес (до 100 000 контактов, omnichannel, персональный менеджер). 7 дней бесплатно без карты, скидка 30% при оплате за год."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Можно ли заменить Mailchimp и Unisender на MAIL-KA?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. MAIL-KA — полноценная замена Mailchimp, Unisender, SendPulse и DashaMail. Поддерживает импорт из CSV и API, прогрев домена, DKIM и SPF, сегментацию, A/B-тесты, RFM-анализ. Серверы в России, оплата в рублях по карте или СБП."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Что умеет ИИ-копирайтер MAIL-KA?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ИИ генерирует темы и тексты писем по brief'у, проверяет на спам-триггеры, прогнозирует open rate, придумывает 5 вариантов темы, помогает с сегментацией на естественном языке. Работает на GPT-4o, Claude 3.5 Sonnet, DeepSeek, Llama 3 через polza.ai (без VPN, оплата в рублях)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как подключить свой домен к рассылкам?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "В разделе «Настройки» → «Домены и DKIM» добавьте домен и пропишите три DNS-записи (DKIM, SPF, DMARC) — мы их сгенерируем автоматически. Прогрев домена встроен: первые письма уходят малыми пачками, постепенно наращивая объём, что повышает доставляемость в Gmail и Yandex Mail."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Поддерживает ли MAIL-KA рассылки в Telegram и SMS?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. На тарифе Enterprise доступна omnichannel-кампания: Email + SMS (МТС, МегаФон, Билайн, Tele2) + Telegram + WhatsApp Business + Web/Mobile Push + Viber + VK в одной воронке. Каскадная отправка: если письмо не открыто за 24 часа — отправляется SMS, потом Telegram."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Безопасны ли мои данные? Соответствие 152-ФЗ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да, MAIL-KA полностью соответствует 152-ФЗ: серверы и резервные копии — на территории России, шифрование TLS 1.3, аудит входов, защита от перебора паролей, RBAC, журнал событий. Подписан договор обработки персональных данных (ОПД)."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- JSON-LD BreadcrumbList корня -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "MAIL-KA", "item": "https://mail-ka.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Тарифы", "item": "https://mail-ka.ru/?page=pricing" },
+        { "@type": "ListItem", "position": 3, "name": "Корпоративная почта", "item": "https://mail-ka.ru/?page=mailbox" }
+      ]
+    }
+    </script>
+
+    <!-- Региональность для Яндекса -->
+    <link rel="alternate" hreflang="ru-RU" href="https://mail-ka.ru/"/>
+    <link rel="alternate" hreflang="x-default" href="https://mail-ka.ru/"/>
+    <meta name="geo.region" content="RU"/>
+    <meta name="geo.placename" content="Россия"/>
 
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
 
@@ -162,6 +249,84 @@
 
 <body>
 <div id="root"></div>
+
+<!-- SEO-контент для индексации поисковиками (виден только без JS, но читается ботами) -->
+<noscript>
+  <header>
+    <h1>MAIL-KA — российская платформа email-маркетинга с ИИ и автоматизациями</h1>
+    <p>
+      MAIL-KA — это сервис email-рассылок нового поколения для российского бизнеса. Замена Mailchimp,
+      Unisender, SendPulse и DashaMail. Серверы в России, оплата в рублях, соответствие 152-ФЗ.
+    </p>
+  </header>
+
+  <nav>
+    <h2>Разделы сервиса</h2>
+    <ul>
+      <li><a href="/?page=pricing">Тарифы и оплата email-рассылок</a> — от 990 ₽/мес, 7 дней бесплатно</li>
+      <li><a href="/?page=mailbox">Корпоративная почта для домена</a> — Beget и Яндекс 360</li>
+      <li><a href="/?page=templates">Шаблоны email-писем</a> — 50+ готовых дизайнов</li>
+      <li><a href="/?page=automation">Автоматизации и триггерные рассылки</a> — welcome, брошенная корзина</li>
+      <li><a href="/?page=omnichannel">Omnichannel: Email + SMS + Telegram + Push</a></li>
+      <li><a href="/?page=predict">Predictive AI: LTV, churn risk, best send time</a></li>
+      <li><a href="/?page=integrations">Интеграции: Bitrix24, amoCRM, Telegram, webhooks</a></li>
+      <li><a href="/?page=api">REST API для разработчиков</a></li>
+      <li><a href="/?page=security">Безопасность и 152-ФЗ</a></li>
+    </ul>
+  </nav>
+
+  <section>
+    <h2>Возможности платформы рассылок MAIL-KA</h2>
+    <ul>
+      <li><strong>ИИ-копирайтер</strong> на GPT-4o, Claude 3.5 Sonnet, DeepSeek — генерирует темы и тексты писем за секунды</li>
+      <li><strong>Visual Automation Builder</strong> — welcome-серии, брошенная корзина, реактивация, день рождения</li>
+      <li><strong>8 каналов в одной кампании</strong> — Email, SMS (МТС, МегаФон, Билайн, Tele2), Telegram, WhatsApp Business, Web Push, Mobile Push, Viber, VK</li>
+      <li><strong>Predictive Analytics</strong> — прогноз LTV, churn risk, идеальное время отправки, retention curve</li>
+      <li><strong>A/B-тесты</strong> темы, текста, времени отправки и кнопок CTA</li>
+      <li><strong>Прогрев домена</strong>, DKIM, SPF, DMARC из коробки — повышает доставляемость в Gmail и Яндекс.Почту</li>
+      <li><strong>Сегментация и RFM-анализ</strong> — до 1 000 000 контактов на одном тарифе</li>
+      <li><strong>Импорт CSV</strong> и двусторонняя синхронизация с Bitrix24, amoCRM, AmoCRM</li>
+      <li><strong>REST API</strong> — Python, Node.js, PHP SDK, до 100 запросов/сек</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Тарифы email-маркетинга</h2>
+    <ul>
+      <li><strong>Старт — 990 ₽/мес</strong>: до 5 000 контактов, 50 000 писем, ИИ-копирайтер. 7 дней бесплатно без карты.</li>
+      <li><strong>Бизнес — 2 990 ₽/мес</strong>: до 25 000 контактов, безлимит писем, автоматизации, predictive AI.</li>
+      <li><strong>Enterprise — 7 990 ₽/мес</strong>: до 100 000 контактов, omnichannel, SMS, Telegram, WhatsApp, персональный менеджер.</li>
+    </ul>
+    <p>Скидка 30% при оплате за год. Оплата картой и через СБП (ЮKassa). Без скрытых комиссий.</p>
+  </section>
+
+  <section>
+    <h2>Часто задаваемые вопросы об email-рассылках</h2>
+    <h3>Можно ли заменить Mailchimp на MAIL-KA?</h3>
+    <p>
+      Да, MAIL-KA — полноценная замена Mailchimp, Unisender, SendPulse и DashaMail с поддержкой
+      импорта контактов из CSV и API, прогревом домена, DKIM и SPF, сегментацией и A/B-тестами.
+      Серверы в России, оплата в рублях.
+    </p>
+    <h3>Что умеет ИИ-копирайтер?</h3>
+    <p>
+      ИИ генерирует темы и тексты писем по brief'у, проверяет на спам-триггеры, прогнозирует open rate,
+      придумывает 5 вариантов темы, помогает с сегментацией на естественном языке. Работает на GPT-4o,
+      Claude 3.5, DeepSeek, Llama 3.
+    </p>
+    <h3>Безопасны ли мои данные?</h3>
+    <p>
+      MAIL-KA полностью соответствует 152-ФЗ: серверы в России, шифрование TLS 1.3, аудит входов,
+      защита от перебора паролей, RBAC, договор обработки персональных данных.
+    </p>
+  </section>
+
+  <footer>
+    <p>© MAIL-KA — email-маркетинг с искусственным интеллектом. Россия, 2026.</p>
+    <p>Контакты: <a href="mailto:support@mail-ka.ru">support@mail-ka.ru</a></p>
+  </footer>
+</noscript>
+
 <script type="module" src="/src/main.tsx"></script>
 
 <!-- Yandex.Metrika counter -->

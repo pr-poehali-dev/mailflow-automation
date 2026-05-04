@@ -39,6 +39,7 @@ export default function AiConsultant() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [unread, setUnread] = useState(false);
+  const [proactive, setProactive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,6 +60,27 @@ export default function AiConsultant() {
   useEffect(() => {
     if (open) return;
     const t = setTimeout(() => setUnread(true), 8000);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  // Проактивное приветствие через 30 секунд (не чаще раза в сутки)
+  useEffect(() => {
+    if (open) return;
+    try {
+      const last = localStorage.getItem("mk_ai_proactive_shown");
+      if (last && Date.now() - Number(last) < 24 * 60 * 60 * 1000) return;
+    } catch {
+      /* ignore */
+    }
+    const t = setTimeout(() => {
+      setProactive(true);
+      setUnread(true);
+      try {
+        localStorage.setItem("mk_ai_proactive_shown", String(Date.now()));
+      } catch {
+        /* ignore */
+      }
+    }, 30000);
     return () => clearTimeout(t);
   }, [open]);
 
@@ -118,6 +140,12 @@ export default function AiConsultant() {
   function toggle() {
     setOpen((v) => !v);
     setUnread(false);
+    setProactive(false);
+  }
+
+  function dismissProactive(e: React.MouseEvent) {
+    e.stopPropagation();
+    setProactive(false);
   }
 
   return (
@@ -139,6 +167,41 @@ export default function AiConsultant() {
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-pink-500 border-2 border-background animate-pulse" />
         )}
       </button>
+
+      {/* Проактивная подсказка */}
+      {!open && proactive && (
+        <div
+          onClick={toggle}
+          className="fixed bottom-24 right-5 z-40 max-w-[280px] rounded-2xl rounded-br-md p-3.5 cursor-pointer shadow-2xl fade-in-up"
+          style={{
+            background: "linear-gradient(135deg, rgba(30,27,75,0.98), rgba(15,12,41,0.98))",
+            border: "1px solid rgba(139,92,246,0.4)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <button
+            onClick={dismissProactive}
+            aria-label="Закрыть подсказку"
+            className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+          >
+            <Icon name="X" size={11} className="text-muted-foreground" />
+          </button>
+          <div className="flex items-start gap-2.5 pr-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}
+            >
+              <Icon name="Bot" size={15} className="text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-sm mb-0.5">Привет! Я Юра 👋</div>
+              <div className="text-xs text-muted-foreground leading-snug">
+                Помогу выбрать тариф или настроить первую рассылку. Нажмите, чтобы спросить.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Окно чата */}
       {open && (
