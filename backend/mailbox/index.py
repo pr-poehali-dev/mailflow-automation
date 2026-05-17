@@ -10,9 +10,64 @@
 import json
 import os
 import hashlib
+import html as html_lib
 import psycopg2
 
+from notifier import send_admin_email
+
 SCHEMA = "t_p46602131_mailflow_automation"
+
+PROVIDER_LABELS = {
+    "beget": "Beget — хостинг + почта",
+    "yandex360": "Яндекс 360",
+    "vk_workspace": "VK WorkSpace",
+}
+
+
+def notify_mailbox_request(order_id: int, provider: str, plan: str, domain: str,
+                           mailboxes: int, name: str, email: str, phone: str,
+                           notes: str, ip: str) -> None:
+    """Шлёт админу письмо о новой заявке на корпоративную почту."""
+    try:
+        prov_ru = PROVIDER_LABELS.get(provider, provider)
+        esc = html_lib.escape
+        html_body = f"""<!DOCTYPE html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#f7f7fb;padding:24px;color:#1a1a2e">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+    <div style="font-size:13px;color:#06b6d4;font-weight:600;letter-spacing:.5px;text-transform:uppercase">MAIL-KA · Корпоративная почта</div>
+    <h1 style="margin:8px 0 20px;font-size:22px">Заявка №{order_id} на подключение</h1>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      <tr><td style="padding:8px 0;color:#6b7280;width:140px">Провайдер</td><td style="font-weight:600">{esc(prov_ru)}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Тариф</td><td>{esc(plan or '—')}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Домен</td><td style="font-family:monospace">{esc(domain or '—')}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Ящиков</td><td>{mailboxes}</td></tr>
+      <tr><td style="padding:16px 0 8px;color:#9ca3af;font-size:11px;text-transform:uppercase" colspan="2">Контакты</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Имя</td><td>{esc(name or '—')}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Email</td><td><a href="mailto:{esc(email)}" style="color:#06b6d4;text-decoration:none">{esc(email)}</a></td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Телефон</td><td>{esc(phone or '—')}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Комментарий</td><td style="white-space:pre-wrap">{esc(notes or '—')}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">IP</td><td style="font-family:monospace;color:#6b7280;font-size:12px">{esc(ip or '—')}</td></tr>
+    </table>
+    <a href="mailto:{esc(email)}" style="display:inline-block;margin-top:20px;padding:10px 20px;background:linear-gradient(135deg,#06b6d4,#8b5cf6);color:#fff;border-radius:10px;font-weight:600;text-decoration:none;font-size:14px">Связаться с клиентом</a>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eef0f3;font-size:11px;color:#9ca3af">
+      Автоматическое уведомление MAIL-KA. Свяжись с клиентом в течение рабочего дня.
+    </div>
+  </div>
+</body></html>"""
+        text_body = (
+            f"Заявка №{order_id} на корпоративную почту\n\n"
+            f"Провайдер: {prov_ru}\n"
+            f"Тариф: {plan}\nДомен: {domain}\nЯщиков: {mailboxes}\n\n"
+            f"Имя: {name}\nEmail: {email}\nТелефон: {phone}\n"
+            f"Комментарий: {notes or '—'}\nIP: {ip or '—'}\n"
+        )
+        send_admin_email(
+            subject=f"[MAIL-KA] Заявка на почту №{order_id} — {prov_ru}",
+            html_body=html_body,
+            text_body=text_body,
+        )
+    except Exception as e:
+        print(f"[notify_mailbox_request] FAIL: {type(e).__name__}: {str(e)[:200]}")
 
 ALLOWED_ORIGINS = {
     "https://mail-ka.ru", "https://www.mail-ka.ru",
@@ -240,6 +295,13 @@ def handler(event, context):
             order_id = cur.fetchone()[0]
             conn.commit()
             cur.close()
+
+            notify_mailbox_request(
+                order_id=order_id, provider=provider, plan=plan, domain=domain,
+                mailboxes=mailboxes, name=cname, email=cemail, phone=cphone,
+                notes=notes, ip=ip or "",
+            )
+
             return resp(200, {
                 "ok": True,
                 "order_id": order_id,
