@@ -5,7 +5,7 @@ import { CascadeBuilder } from "./omnichannel/CascadeBuilder";
 import { ChannelsGrid } from "./omnichannel/ChannelsGrid";
 
 export function OmnichannelPage() {
-  const [selectedCascade, setSelectedCascade] = useState<string[]>(["email", "sms"]);
+  const [selectedCascade, setSelectedCascade] = useState<string[]>(["email", "telegram"]);
 
   const channels = CHANNELS;
   const totalSent = channels.reduce((s, c) => s + c.sent_today, 0);
@@ -26,7 +26,7 @@ export function OmnichannelPage() {
             <span className="text-xs px-2 py-0.5 rounded-full text-white"
               style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>НОВОЕ</span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-0.5">8 каналов в одной платформе · единая статистика · каскадная отправка</p>
+          <p className="text-muted-foreground text-sm mt-0.5">{channels.length} каналов в одной платформе · единая статистика · каскадная отправка</p>
         </div>
       </div>
 

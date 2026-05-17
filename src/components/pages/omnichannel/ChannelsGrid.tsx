@@ -24,8 +24,13 @@ export function ChannelsGrid({ channels }: Props) {
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
                   Активен
                 </span>
+              ) : c.coming_soon ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                  style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c" }}>
+                  Скоро
+                </span>
               ) : (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">скоро</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">не активен</span>
               )}
             </div>
             <div className="font-bold text-base">{c.name}</div>
@@ -51,11 +56,14 @@ export function ChannelsGrid({ channels }: Props) {
               ))}
             </div>
 
-            <button className={`w-full mt-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-              c.connected ? "glass hover:bg-white/8 text-foreground" : "text-white"
-            }`}
-              style={!c.connected ? { background: `linear-gradient(135deg, ${c.color}, ${c.color}aa)` } : {}}>
-              {c.connected ? "Настроить" : "Подключить"}
+            <button disabled={c.coming_soon}
+              className={`w-full mt-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                c.connected ? "glass hover:bg-white/8 text-foreground"
+                : c.coming_soon ? "bg-secondary text-muted-foreground cursor-not-allowed"
+                : "text-white"
+              }`}
+              style={!c.connected && !c.coming_soon ? { background: `linear-gradient(135deg, ${c.color}, ${c.color}aa)` } : {}}>
+              {c.connected ? "Настроить" : c.coming_soon ? "Скоро" : "Подключить"}
             </button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { submitPartnerApplication, fetchPartnerStats, PartnerProgram } from "@/api/partners";
 
 const PROGRAMS = [
   {
@@ -126,14 +127,50 @@ export default function PartnersPage() {
   const monthly = Math.round(contacts * tariffPrice * rate);
   const yearly = monthly * 12;
 
-  const [form, setForm] = useState({ name: "", email: "", channel: "", audience: "", program: "referral" });
+  const [form, setForm] = useState<{
+    name: string; email: string; channel: string; audience: string; program: PartnerProgram;
+  }>({ name: "", email: "", channel: "", audience: "", program: "referral" });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [stats, setStats] = useState({ active_partners: 0, total_applications: 0 });
 
-  const submit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchPartnerStats().then((s) => {
+      if (s.ok) setStats({ active_partners: s.active_partners, total_applications: s.total_applications });
+    });
+  }, []);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 6000);
-    setForm({ name: "", email: "", channel: "", audience: "", program: "referral" });
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const utm = new URLSearchParams(window.location.search).get("utm_source") || undefined;
+      const r = await submitPartnerApplication({
+        program: form.program,
+        name: form.name,
+        email: form.email,
+        channel: form.channel || undefined,
+        audience: form.audience || undefined,
+        utm_source: utm,
+      });
+      if (r.ok) {
+        setSubmitted(true);
+        setForm({ name: "", email: "", channel: "", audience: "", program: "referral" });
+      } else {
+        const map: Record<string, string> = {
+          invalid_email: "Проверь email — кажется, опечатка",
+          name_required: "Укажи имя",
+          invalid_json: "Что-то пошло не так, попробуй ещё раз",
+        };
+        setSubmitError(map[r.error || ""] || "Не удалось отправить заявку. Попробуй ещё раз.");
+      }
+    } catch {
+      setSubmitError("Сетевая ошибка. Проверь интернет и попробуй ещё раз.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const formatMoney = (n: number) =>
@@ -489,7 +526,7 @@ export default function PartnersPage() {
                 <label className="text-xs font-medium mb-1.5 block">Программа</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {PROGRAMS.map((p) => (
-                    <button key={p.id} type="button" onClick={() => setForm({ ...form, program: p.id })}
+                    <button key={p.id} type="button" onClick={() => setForm({ ...form, program: p.id as PartnerProgram })}
                       className={`p-2.5 rounded-lg border text-left transition-all ${
                         form.program === p.id ? "border-violet-500 bg-violet-50/50" : "border-border hover:bg-secondary"
                       }`}>
@@ -519,10 +556,18 @@ export default function PartnersPage() {
                 Нажимая «Отправить», ты соглашаешься с обработкой персональных данных по 152-ФЗ.
               </div>
 
-              <Button type="submit" size="lg" className="w-full text-white"
+              {submitError && (
+                <div className="flex items-start gap-2 p-3 rounded-lg text-xs"
+                  style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#dc2626" }}>
+                  <Icon name="AlertCircle" size={13} className="flex-shrink-0 mt-0.5" />
+                  <span>{submitError}</span>
+                </div>
+              )}
+
+              <Button type="submit" size="lg" disabled={submitting} className="w-full text-white"
                 style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
-                <Icon name="Send" size={16} className="mr-2" />
-                Отправить заявку
+                <Icon name={submitting ? "Loader2" : "Send"} size={16} className={`mr-2 ${submitting ? "animate-spin" : ""}`} />
+                {submitting ? "Отправляем..." : "Отправить заявку"}
               </Button>
             </form>
           )}
@@ -531,10 +576,22 @@ export default function PartnersPage() {
 
       {/* FINAL CTA */}
       <section className="text-center py-8 space-y-3">
-        <div className="text-2xl sm:text-3xl font-bold">
-          Уже <span className="gradient-text">142 партнёра</span> зарабатывают с MAIL-KA
-        </div>
-        <div className="text-sm text-muted-foreground">Средний доход активного партнёра — 47 800 ₽/мес</div>
+        {stats.total_applications > 0 ? (
+          <>
+            <div className="text-2xl sm:text-3xl font-bold">
+              Уже <span className="gradient-text">{stats.total_applications}</span> заявок от партнёров принято
+            </div>
+            {stats.active_partners > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Активных партнёров: <span className="font-semibold text-foreground">{stats.active_partners}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-2xl sm:text-3xl font-bold">
+            Стань <span className="gradient-text">первым партнёром</span> MAIL-KA
+          </div>
+        )}
       </section>
     </div>
   );

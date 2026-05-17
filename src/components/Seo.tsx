@@ -34,9 +34,9 @@ const SEO_BY_PAGE: Record<Page, SeoMeta> = {
     keywords: "автоматизация email маркетинга, триггерные рассылки, welcome серия, брошенная корзина",
   },
   omnichannel: {
-    title: "Omnichannel · MAIL-KA — Email + SMS + Telegram + Push в одной кампании",
-    description: "8 каналов в одной платформе: Email, SMS (МТС, МегаФон, Билайн), Telegram, WhatsApp Business, Web Push, Mobile Push, Viber, VK. Каскадная отправка.",
-    keywords: "омниканальный маркетинг, sms рассылка, telegram бот рассылка, push уведомления",
+    title: "Omnichannel · MAIL-KA — Email + Telegram + Push в одной кампании",
+    description: "Email, Telegram, Web Push, Mobile Push, Viber и VK Сообщения в одной платформе. Каскадная отправка и единая статистика. SMS и WhatsApp — в разработке.",
+    keywords: "омниканальный маркетинг, telegram бот рассылка, push уведомления, viber рассылка",
   },
   predict: {
     title: "Predictive AI · MAIL-KA — LTV-прогноз, churn risk, best send time",

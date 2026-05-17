@@ -1,0 +1,49 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action returns 404",
+      "method": "GET",
+      "path": "/?action=unknown",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Apply with invalid email",
+      "method": "POST",
+      "path": "/?action=apply",
+      "body": {"name": "Test", "email": "not-an-email", "program": "referral"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Apply requires name",
+      "method": "POST",
+      "path": "/?action=apply",
+      "body": {"email": "test@example.com", "program": "referral"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Valid apply succeeds",
+      "method": "POST",
+      "path": "/?action=apply",
+      "body": {
+        "name": "Тестовый Партнёр",
+        "email": "partner-test@example.com",
+        "program": "referral",
+        "channel": "Telegram-канал 5k подписчиков",
+        "audience": "Маркетологи и предприниматели"
+      },
+      "expectedStatus": 200
+    },
+    {
+      "name": "Stats returns counts",
+      "method": "GET",
+      "path": "/?action=stats",
+      "expectedStatus": 200
+    }
+  ]
+}

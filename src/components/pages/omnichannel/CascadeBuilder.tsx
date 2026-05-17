@@ -17,7 +17,7 @@ export function CascadeBuilder({ channels, selectedCascade, toggleCascade }: Pro
             <Icon name="GitBranch" size={16} style={{ color: "#8b5cf6" }} />
             Каскадная отправка
           </h2>
-          <p className="text-xs text-muted-foreground">Не открыл письмо за 2 часа? Отправим СМС. Не ответил? Телеграм. Экономия и рост откликов.</p>
+          <p className="text-xs text-muted-foreground">Не открыл письмо за 2 часа? Отправим в Телеграм. Не прочитал? Push на телефон. Экономия и рост откликов.</p>
         </div>
         <button className="text-xs px-4 py-2 rounded-xl font-semibold text-white flex items-center gap-1.5"
           style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>

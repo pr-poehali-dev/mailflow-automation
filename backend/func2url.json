@@ -1,4 +1,6 @@
 {
+  "partners": "https://functions.poehali.dev/a766b91e-fdc4-4369-9a38-68c3aa8485e2",
+  "templates": "https://functions.poehali.dev/75c9f7cd-e5c5-48c5-bda5-703f6aab587e",
   "crm_sync": "https://functions.poehali.dev/baafb613-74d0-4947-a098-3c02c182f53d",
   "crm-oauth": "https://functions.poehali.dev/de5e6f01-9cf1-4347-af58-eb3e96d35506",
   "admin-bootstrap": "https://functions.poehali.dev/bdc1af8b-5235-45c0-9945-d2e08ddb67e1",

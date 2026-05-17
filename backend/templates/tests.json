@@ -1,0 +1,41 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "List system templates",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get template by id",
+      "method": "GET",
+      "path": "/?id=1",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get non-existent template",
+      "method": "GET",
+      "path": "/?id=99999",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Invalid id",
+      "method": "GET",
+      "path": "/?id=abc",
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST without auth returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "test"},
+      "expectedStatus": 401
+    }
+  ]
+}
