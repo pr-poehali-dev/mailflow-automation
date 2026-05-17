@@ -1,29 +1,63 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { chartData } from "@/data/mockData";
 import { fetchCampaigns, Campaign } from "@/api";
+import { fetchGlobalStats, GlobalStats } from "@/api/pro";
+
+const DAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 
 export function Analytics() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [stats, setStats] = useState<GlobalStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchCampaigns().then((d) => {
-      setCampaigns(d.campaigns);
+    Promise.all([fetchCampaigns(), fetchGlobalStats()]).then(([cd, s]) => {
+      setCampaigns(cd.campaigns);
+      setStats(s);
       setLoading(false);
     });
   }, []);
 
-  const delivStats = [
-    { label: "Доставлено", value: "98.4%", color: "#4ade80", icon: "CheckCircle" },
-    { label: "Открыто", value: "27.4%", color: "#06b6d4", icon: "MailOpen" },
-    { label: "Кликнуто", value: "8.1%", color: "#8b5cf6", icon: "MousePointer" },
-    { label: "Отписок", value: "0.3%", color: "#fb923c", icon: "UserMinus" },
-  ];
-  const maxBar = Math.max(...chartData.map((d) => d.opens));
+  const totalSent = stats?.total_sent ?? 0;
+  const fmt = (n: number) => totalSent > 0 ? `${n}%` : "—";
 
-  const totalSent = campaigns.reduce((s, c) => s + c.sent_count, 0);
-  const topCampaigns = [...campaigns].filter((c) => c.open_rate > 0).sort((a, b) => b.open_rate - a.open_rate).slice(0, 4);
+  const deliveryRate = totalSent > 0
+    ? Math.round(((totalSent - (stats?.suppressed ?? 0)) * 1000 / totalSent) / 10)
+    : 0;
+  const openRate = stats?.open_rate ?? 0;
+  const clickRate = stats?.click_rate ?? 0;
+  const unsubRate = totalSent > 0
+    ? Math.round(((stats?.suppressed ?? 0) * 1000 / totalSent) / 10)
+    : 0;
+
+  const delivStats = [
+    { label: "Доставлено", value: totalSent > 0 ? fmt(deliveryRate) : "—", color: "#4ade80", icon: "CheckCircle" },
+    { label: "Открыто", value: totalSent > 0 ? fmt(openRate) : "—", color: "#06b6d4", icon: "MailOpen" },
+    { label: "Кликнуто", value: totalSent > 0 ? fmt(clickRate) : "—", color: "#8b5cf6", icon: "MousePointer" },
+    { label: "Отписок", value: totalSent > 0 ? fmt(unsubRate) : "—", color: "#fb923c", icon: "UserMinus" },
+  ];
+
+  // Сборка недельного графика: добавляем недостающие дни нулями
+  const weekly = stats?.weekly ?? [];
+  const today = new Date();
+  const chart: { day: string; opens: number; clicks: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    const found = weekly.find((w) => String(w.date).slice(0, 10) === iso);
+    chart.push({
+      day: DAY_LABELS[d.getDay()],
+      opens: found?.opened ?? 0,
+      clicks: 0,
+    });
+  }
+  const maxBar = Math.max(1, ...chart.map((d) => d.opens));
+
+  const topCampaigns = [...campaigns]
+    .filter((c) => c.open_rate > 0)
+    .sort((a, b) => b.open_rate - a.open_rate)
+    .slice(0, 4);
 
   return (
     <div className="p-4 sm:p-6 space-y-5">
@@ -41,7 +75,8 @@ export function Analytics() {
             </div>
             <div className="text-3xl font-bold" style={{ color: s.color }}>{s.value}</div>
             <div className="mt-2 h-1 rounded-full bg-white/5">
-              <div className="h-full rounded-full" style={{ width: s.value, background: s.color, opacity: 0.7 }} />
+              <div className="h-full rounded-full"
+                style={{ width: s.value !== "—" ? s.value : "0%", background: s.color, opacity: 0.7 }} />
             </div>
           </div>
         ))}
@@ -53,22 +88,27 @@ export function Analytics() {
             <h2 className="font-semibold">Динамика за 7 дней</h2>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#8b5cf6" }} />Открытия</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#06b6d4" }} />Клики</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full inline-block" style={{ background: "#06b6d4" }} />Отправки</span>
             </div>
           </div>
-          <div className="flex items-end gap-3 h-40">
-            {chartData.map((d, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full flex gap-1 items-end" style={{ height: 120 }}>
-                  <div className="flex-1 rounded-t-md chart-bar"
-                    style={{ height: `${(d.opens / maxBar) * 100}%`, background: "linear-gradient(180deg, #8b5cf6, rgba(139,92,246,0.3))", animationDelay: `${i * 0.08}s` }} />
-                  <div className="flex-1 rounded-t-md chart-bar"
-                    style={{ height: `${(d.clicks / maxBar) * 100}%`, background: "linear-gradient(180deg, #06b6d4, rgba(6,182,212,0.3))", animationDelay: `${i * 0.08 + 0.04}s` }} />
+          {totalSent === 0 ? (
+            <div className="h-40 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
+              <Icon name="BarChart2" size={32} className="opacity-30" />
+              <div>Запусти первую кампанию — здесь появится график</div>
+            </div>
+          ) : (
+            <div className="flex items-end gap-3 h-40">
+              {chart.map((d, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full flex gap-1 items-end" style={{ height: 120 }}>
+                    <div className="flex-1 rounded-t-md chart-bar"
+                      style={{ height: `${(d.opens / maxBar) * 100}%`, background: "linear-gradient(180deg, #8b5cf6, rgba(139,92,246,0.3))", animationDelay: `${i * 0.08}s` }} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">{d.day}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{d.day}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="glass rounded-2xl p-5">
