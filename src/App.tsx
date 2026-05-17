@@ -31,9 +31,10 @@ import PredictPage from "@/components/pages/PredictPage";
 import PricingPage from "@/components/pages/PricingPage";
 import SecurityPage from "@/components/pages/SecurityPage";
 import MailboxStorePage from "@/components/pages/MailboxStorePage";
+import PartnersPage from "@/components/pages/PartnersPage";
 
-// Главная, страница тарифов и витрина корпоративной почты открыты всем
-const PUBLIC_PAGES: Page[] = ["dashboard", "pricing", "mailbox"];
+// Главная, страница тарифов, витрина корпоративной почты и партнёрка открыты всем
+const PUBLIC_PAGES: Page[] = ["dashboard", "pricing", "mailbox", "partners"];
 
 const PAGE_LABELS: Partial<Record<Page, string>> = {
   campaigns: "рассылок",
@@ -46,6 +47,7 @@ const PAGE_LABELS: Partial<Record<Page, string>> = {
   integrations: "интеграций",
   templates: "шаблонов",
   mailbox: "корпоративной почты",
+  partners: "партнёрской программы",
   settings: "настроек",
   api: "ключей программного интерфейса",
   security: "панели безопасности",
@@ -150,6 +152,7 @@ function MainApp() {
     integrations: <Integrations />,
     templates: <Templates setPage={guardedSetPage} />,
     mailbox: <MailboxStorePage />,
+    partners: <PartnersPage />,
     pricing: <PricingPage />,
     settings: <SettingsPage />,
     api: <ApiPage />,

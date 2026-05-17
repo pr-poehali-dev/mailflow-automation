@@ -13,7 +13,8 @@ export type Page =
   | "settings"
   | "api"
   | "security"
-  | "mailbox";
+  | "mailbox"
+  | "partners";
 
 export const mockStats = [
   { label: "Контактов", value: "48 291", delta: "+12%", icon: "Users", color: "var(--neon-purple)" },
@@ -80,6 +81,7 @@ export const navItems: { id: Page; label: string; icon: string; badge?: string }
   { id: "integrations", label: "Интеграции", icon: "Puzzle" },
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },
   { id: "mailbox", label: "Корпоративная почта", icon: "AtSign", badge: "от 99₽" },
+  { id: "partners", label: "Партнёрам", icon: "Handshake", badge: "20%" },
   { id: "pricing", label: "Тарифы", icon: "Crown", badge: "−30%" },
   { id: "api", label: "Программный интерфейс", icon: "Code2" },
   { id: "security", label: "Безопасность", icon: "ShieldCheck", badge: "АДМ" },

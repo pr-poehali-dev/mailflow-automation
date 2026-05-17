@@ -26,6 +26,7 @@ const PAGE_SECTIONS: Record<Page, Section> = {
   integrations: { category: "Подключения",  label: "Интеграции",         icon: "Puzzle" },
   templates:    { category: "Маркетинг",    label: "Шаблоны писем",      icon: "LayoutTemplate" },
   mailbox:      { category: "Сервисы",      label: "Корпоративная почта", icon: "AtSign" },
+  partners:     { category: "Сервисы",      label: "Партнёрская программа", icon: "Handshake" },
   pricing:      { category: "Аккаунт",      label: "Тарифы и оплата",    icon: "Crown" },
   settings:     { category: "Аккаунт",      label: "Настройки",          icon: "Settings" },
   api:          { category: "Подключения",  label: "Программный интерфейс для разработчиков", icon: "Code2" },

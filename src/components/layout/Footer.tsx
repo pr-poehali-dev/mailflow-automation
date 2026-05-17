@@ -73,9 +73,15 @@ export function Footer({ setPage }: Props) {
         <a href="/personal-data" className="hover:text-foreground transition-colors">Согласие на обработку ПДн</a>
         <a href="/advertising-policy" className="hover:text-foreground transition-colors">Правила рассылок</a>
         {setPage && (
-          <button onClick={() => setPage("pricing")} className="hover:text-foreground transition-colors">
-            Тарифы
-          </button>
+          <>
+            <button onClick={() => setPage("pricing")} className="hover:text-foreground transition-colors">
+              Тарифы
+            </button>
+            <button onClick={() => setPage("partners")} className="hover:text-foreground transition-colors font-semibold"
+              style={{ color: "#8b5cf6" }}>
+              Партнёрам — до 40%
+            </button>
+          </>
         )}
       </div>
 
