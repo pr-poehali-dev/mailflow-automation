@@ -121,6 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     consents: { offer: boolean; privacy: boolean; marketing?: boolean } = { offer: true, privacy: true },
   ) => {
     setLoading(true);
+    let refCode = "";
+    try {
+      refCode = localStorage.getItem("mk_ref_code") || "";
+    } catch { /* ignore */ }
     try {
       const res = await fetch(`${AUTH_URL}?action=register`, {
         method: "POST",
@@ -133,12 +137,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accept_privacy: consents.privacy,
           accept_marketing: consents.marketing ?? false,
           docs_version: "1.0",
+          ref_code: refCode,
         }),
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, error: data.error || "Ошибка регистрации" };
       setTokens(data.token, data.csrf_token);
       setUser(data.user);
+      try { localStorage.removeItem("mk_ref_code"); } catch { /* ignore */ }
       return { ok: true };
     } catch {
       return { ok: false, error: "Сетевая ошибка" };

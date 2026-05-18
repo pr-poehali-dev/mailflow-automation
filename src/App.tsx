@@ -32,6 +32,7 @@ import PricingPage from "@/components/pages/PricingPage";
 import SecurityPage from "@/components/pages/SecurityPage";
 import MailboxStorePage from "@/components/pages/MailboxStorePage";
 import PartnersPage from "@/components/pages/PartnersPage";
+import ReferralsPage from "@/components/pages/ReferralsPage";
 
 // Главная, страница тарифов, витрина корпоративной почты и партнёрка открыты всем
 const PUBLIC_PAGES: Page[] = ["dashboard", "pricing", "mailbox", "partners"];
@@ -48,6 +49,7 @@ const PAGE_LABELS: Partial<Record<Page, string>> = {
   templates: "шаблонов",
   mailbox: "корпоративной почты",
   partners: "партнёрской программы",
+  referrals: "реферальной программы",
   settings: "настроек",
   api: "ключей программного интерфейса",
   security: "панели безопасности",
@@ -115,6 +117,14 @@ function MainApp() {
       url.searchParams.delete("verify_email");
       window.history.replaceState({}, "", url.toString());
     }
+    // Захватываем реферальный код из URL ?ref=ABC123
+    const ref = params.get("ref");
+    if (ref) {
+      try { localStorage.setItem("mk_ref_code", ref.toUpperCase().slice(0, 20)); } catch { /* ignore */ }
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ref");
+      window.history.replaceState({}, "", url.toString());
+    }
   }, []);
 
   // Защита переходов: незалогиненный — может только на public страницы
@@ -153,6 +163,7 @@ function MainApp() {
     templates: <Templates setPage={guardedSetPage} />,
     mailbox: <MailboxStorePage />,
     partners: <PartnersPage />,
+    referrals: <ReferralsPage />,
     pricing: <PricingPage />,
     settings: <SettingsPage />,
     api: <ApiPage />,

@@ -127,6 +127,80 @@ def get_schema() -> str:
     return f"{schema}." if schema else ""
 
 
+REFERRAL_BONUS_AMOUNT = 500  # ₽ инвайтеру за оплатившего реферала
+
+
+def process_referral_bonus(cur, S: str, order_id: int, user_email: str) -> None:
+    """Если покупатель пришёл по реф-коду, начисляем бонус инвайтеру.
+    Защищено от повторного начисления через статус referral=converted."""
+    try:
+        cur.execute(
+            f"SELECT id, referred_by_code FROM {S}users WHERE LOWER(email_lower) = LOWER(%s)",
+            (user_email or '',)
+        )
+        urow = cur.fetchone()
+        if not urow:
+            return
+        invitee_id, ref_code = urow
+        if not ref_code:
+            return
+
+        cur.execute(
+            f"SELECT id FROM {S}users WHERE referral_code = %s",
+            (ref_code,)
+        )
+        inv = cur.fetchone()
+        if not inv:
+            return
+        inviter_id = inv[0]
+        if inviter_id == invitee_id:
+            return
+
+        cur.execute(
+            f"SELECT id, status FROM {S}referrals "
+            f"WHERE inviter_user_id = %s AND LOWER(invitee_email) = LOWER(%s) "
+            f"ORDER BY id DESC LIMIT 1",
+            (inviter_id, user_email)
+        )
+        ref_row = cur.fetchone()
+
+        if ref_row:
+            ref_id, ref_status = ref_row
+            if ref_status == 'converted':
+                return
+            cur.execute(
+                f"UPDATE {S}referrals "
+                f"SET status='converted', bonus_amount=%s, order_id=%s, "
+                f"    invitee_user_id=%s, converted_at=CURRENT_TIMESTAMP "
+                f"WHERE id = %s",
+                (REFERRAL_BONUS_AMOUNT, order_id, invitee_id, ref_id)
+            )
+        else:
+            cur.execute(
+                f"INSERT INTO {S}referrals "
+                f"(inviter_user_id, invitee_user_id, invitee_email, referral_code, "
+                f" status, bonus_amount, order_id, converted_at) "
+                f"VALUES (%s, %s, %s, %s, 'converted', %s, %s, CURRENT_TIMESTAMP) "
+                f"RETURNING id",
+                (inviter_id, invitee_id, user_email, ref_code, REFERRAL_BONUS_AMOUNT, order_id)
+            )
+            ref_id = cur.fetchone()[0]
+
+        cur.execute(
+            f"UPDATE {S}users SET bonus_balance = bonus_balance + %s WHERE id = %s",
+            (REFERRAL_BONUS_AMOUNT, inviter_id)
+        )
+        cur.execute(
+            f"INSERT INTO {S}bonus_transactions "
+            f"(user_id, amount, type, description, referral_id, order_id) "
+            f"VALUES (%s, %s, 'referral', %s, %s, %s)",
+            (inviter_id, REFERRAL_BONUS_AMOUNT,
+             f'Бонус за оплатившего реферала ({user_email})', ref_id, order_id)
+        )
+    except Exception as e:
+        print(f"[referral_bonus] FAIL: {type(e).__name__}: {str(e)[:200]}")
+
+
 # =============================================================================
 # HANDLER
 # =============================================================================
@@ -231,6 +305,13 @@ def handler(event, context):
                     SET status = 'paid', paid_at = %s, updated_at = %s
                     WHERE id = %s
                 """, (now, now, order_id))
+
+                # Начисляем реф-бонус инвайтеру (если есть)
+                try:
+                    process_referral_bonus(cur, S, order_id, user_email or '')
+                except Exception:
+                    pass
+
                 conn.commit()
 
                 # Отправляем приветственное письмо только при первом переходе в paid

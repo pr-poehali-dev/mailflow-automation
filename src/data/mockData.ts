@@ -14,7 +14,8 @@ export type Page =
   | "api"
   | "security"
   | "mailbox"
-  | "partners";
+  | "partners"
+  | "referrals";
 
 export const chartData = [
   { day: "Пн", opens: 68, clicks: 22 },
@@ -39,6 +40,7 @@ export const navItems: { id: Page; label: string; icon: string; badge?: string }
   { id: "templates", label: "Шаблоны", icon: "LayoutTemplate" },
   { id: "mailbox", label: "Корпоративная почта", icon: "AtSign", badge: "от 99₽" },
   { id: "partners", label: "Партнёрам", icon: "Handshake", badge: "20%" },
+  { id: "referrals", label: "Приведи друга", icon: "Gift", badge: "+500₽" },
   { id: "pricing", label: "Тарифы", icon: "Crown", badge: "−30%" },
   { id: "api", label: "Программный интерфейс", icon: "Code2" },
   { id: "security", label: "Безопасность", icon: "ShieldCheck", badge: "АДМ" },

@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "capture without inviter code returns 400",
+      "method": "POST",
+      "path": "/?action=capture",
+      "headers": {"Content-Type": "application/json"},
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {"ok": false, "error": "bad_input"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "me without auth returns 401",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "unknown action with auth missing -> 401",
+      "method": "GET",
+      "path": "/?action=zzz",
+      "expectedStatus": 401,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

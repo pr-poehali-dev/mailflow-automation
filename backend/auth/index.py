@@ -265,6 +265,7 @@ def action_register(event: dict, cur, conn) -> dict:
     accept_privacy = bool(body.get('accept_privacy'))
     accept_marketing = bool(body.get('accept_marketing', False))
     docs_version = (body.get('docs_version') or '1.0').strip()[:20]
+    ref_code = (body.get('ref_code') or '').strip().upper()[:20]
     ip = get_client_ip(event)
     ua = get_user_agent(event.get('headers') or {})
 
@@ -307,6 +308,29 @@ def action_register(event: dict, cur, conn) -> dict:
     )
     user = cur.fetchone()
     user_id = user[0]
+
+    # Генерируем referral_code для нового юзера + сохраняем чей он реферал
+    try:
+        own_ref = hashlib.md5(f"{user_id}{email}".encode()).hexdigest()[:8].upper()
+        cur.execute(
+            f"UPDATE {S}users SET referral_code = %s WHERE id = %s",
+            (own_ref, user_id)
+        )
+        if ref_code:
+            cur.execute(f"SELECT id FROM {S}users WHERE referral_code = %s", (ref_code,))
+            inv = cur.fetchone()
+            if inv and inv[0] != user_id:
+                cur.execute(
+                    f"UPDATE {S}users SET referred_by_code = %s WHERE id = %s",
+                    (ref_code, user_id)
+                )
+                cur.execute(
+                    f"INSERT INTO {S}referrals (inviter_user_id, invitee_user_id, invitee_email, referral_code, status) "
+                    f"VALUES (%s, %s, %s, %s, 'pending')",
+                    (inv[0], user_id, email, ref_code)
+                )
+    except Exception:
+        pass
 
     # Лог согласий (для аудита 152-ФЗ)
     for doc in ('offer', 'privacy'):
