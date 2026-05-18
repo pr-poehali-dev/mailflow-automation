@@ -263,3 +263,62 @@ export async function deleteMailboxOrder(order_id: number) {
   });
   return r.json();
 }
+
+// ─── Заявки партнёров ─────────────────────────────────────────────────────
+
+export interface PartnerApplicationRow {
+  id: number;
+  program: string;
+  name: string;
+  email: string;
+  channel: string | null;
+  audience: string | null;
+  status: string;
+  notes: string | null;
+  user_id: number | null;
+  user_email: string | null;
+  utm_source: string | null;
+  ip_address: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchPartnerApps(filter: {
+  status?: string; program?: string; search?: string; limit?: number;
+} = {}): Promise<{ applications: PartnerApplicationRow[]; stats: Record<string, number> }> {
+  const url = new URL(ADMIN_URL);
+  url.searchParams.set("action", "partner_apps");
+  if (filter.status) url.searchParams.set("status", filter.status);
+  if (filter.program) url.searchParams.set("program", filter.program);
+  if (filter.search) url.searchParams.set("search", filter.search);
+  url.searchParams.set("limit", String(filter.limit ?? 200));
+  const r = await fetch(url.toString(), { headers: authHeaders() });
+  return r.json();
+}
+
+export async function setPartnerStatus(app_id: number, status: string) {
+  const r = await fetch(`${ADMIN_URL}?action=partner_set_status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ app_id, status }),
+  });
+  return r.json();
+}
+
+export async function setPartnerNotes(app_id: number, notes: string) {
+  const r = await fetch(`${ADMIN_URL}?action=partner_set_notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ app_id, notes }),
+  });
+  return r.json();
+}
+
+export async function deletePartnerApp(app_id: number) {
+  const r = await fetch(`${ADMIN_URL}?action=partner_delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ app_id }),
+  });
+  return r.json();
+}

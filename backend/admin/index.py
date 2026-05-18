@@ -20,6 +20,10 @@
   mailbox_set_status  POST — смена статуса заявки {order_id, status}
   mailbox_set_notes   POST — заметка к заявке {order_id, notes}
   mailbox_delete      POST — удалить заявку {order_id}
+  partner_apps        GET  — заявки партнёров (фильтры status/program/search)
+  partner_set_status  POST — смена статуса {app_id, status}
+  partner_set_notes   POST — заметка {app_id, notes}
+  partner_delete      POST — удалить заявку {app_id}
 """
 import json
 import os
@@ -581,6 +585,117 @@ def handler(event: dict, context) -> dict:
                 cur.close()
                 return resp(404, {"error": "Заявка не найдена"}, event)
             audit(cur, admin_id, "mailbox_delete", None, f"order={order_id}")
+            conn.commit()
+            cur.close()
+            return resp(200, {"ok": True}, event)
+
+        # ── PARTNER APPLICATIONS ───────────────────────────────────────────
+        if action == "partner_apps" and method == "GET":
+            status_f = (qs.get("status") or "").strip()[:30]
+            program_f = (qs.get("program") or "").strip()[:40]
+            search = (qs.get("search") or "").strip()[:100]
+            limit = min(int(qs.get("limit") or 200), 500)
+            where = ["1=1"]
+            params = []
+            if status_f:
+                where.append("pa.status = %s")
+                params.append(status_f)
+            if program_f:
+                where.append("pa.program = %s")
+                params.append(program_f)
+            if search:
+                where.append("(LOWER(pa.email) LIKE %s OR LOWER(pa.name) LIKE %s)")
+                params.extend([f"%{search.lower()}%", f"%{search.lower()}%"])
+            cur = conn.cursor()
+            cur.execute(
+                f"SELECT pa.id, pa.program, pa.name, pa.email, pa.channel, pa.audience, "
+                f"pa.status, pa.notes, pa.user_id, u.email, "
+                f"pa.utm_source, pa.ip_address, pa.created_at, pa.updated_at "
+                f"FROM {SCHEMA}.partner_applications pa "
+                f"LEFT JOIN {SCHEMA}.users u ON u.id = pa.user_id "
+                f"WHERE {' AND '.join(where)} "
+                f"ORDER BY pa.created_at DESC LIMIT {limit}",
+                tuple(params),
+            )
+            rows = cur.fetchall()
+            cur.execute(
+                f"SELECT status, COUNT(*) FROM {SCHEMA}.partner_applications GROUP BY status"
+            )
+            stats_rows = cur.fetchall()
+            cur.close()
+            return resp(200, {
+                "applications": [{
+                    "id": r[0], "program": r[1], "name": r[2], "email": r[3],
+                    "channel": r[4], "audience": r[5],
+                    "status": r[6], "notes": r[7],
+                    "user_id": r[8], "user_email": r[9],
+                    "utm_source": r[10], "ip_address": r[11],
+                    "created_at": r[12], "updated_at": r[13],
+                } for r in rows],
+                "stats": {r[0]: r[1] for r in stats_rows},
+            }, event)
+
+        if action == "partner_set_status" and method == "POST":
+            app_id = int(body.get("app_id") or 0)
+            new_status = (body.get("status") or "").strip()[:30]
+            allowed = {"new", "in_review", "approved", "rejected", "active", "paused"}
+            if not app_id or new_status not in allowed:
+                return resp(400, {
+                    "error": "Нужны app_id и валидный status (new/in_review/approved/rejected/active/paused)"
+                }, event)
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE {SCHEMA}.partner_applications SET status = %s, updated_at = NOW() "
+                f"WHERE id = %s RETURNING id",
+                (new_status, app_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                cur.close()
+                return resp(404, {"error": "Заявка не найдена"}, event)
+            audit(cur, admin_id, "partner_set_status", None,
+                  f"app={app_id} status={new_status}")
+            conn.commit()
+            cur.close()
+            return resp(200, {"ok": True, "app_id": app_id, "status": new_status}, event)
+
+        if action == "partner_set_notes" and method == "POST":
+            app_id = int(body.get("app_id") or 0)
+            notes = (body.get("notes") or "")[:2000]
+            if not app_id:
+                return resp(400, {"error": "app_id required"}, event)
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE {SCHEMA}.partner_applications SET notes = %s, updated_at = NOW() "
+                f"WHERE id = %s RETURNING id",
+                (notes, app_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                cur.close()
+                return resp(404, {"error": "Заявка не найдена"}, event)
+            audit(cur, admin_id, "partner_set_notes", None, f"app={app_id}")
+            conn.commit()
+            cur.close()
+            return resp(200, {"ok": True}, event)
+
+        if action == "partner_delete" and method == "POST":
+            app_id = int(body.get("app_id") or 0)
+            if not app_id:
+                return resp(400, {"error": "app_id required"}, event)
+            cur = conn.cursor()
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.partner_applications WHERE id = %s RETURNING id",
+                (app_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                cur.close()
+                return resp(404, {"error": "Заявка не найдена"}, event)
+            audit(cur, admin_id, "partner_delete", None, f"app={app_id}")
             conn.commit()
             cur.close()
             return resp(200, {"ok": True}, event)

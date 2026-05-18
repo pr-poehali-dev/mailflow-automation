@@ -20,6 +20,19 @@
       "expectedStatus": 401
     },
     {
+      "name": "GET partner_apps без токена → 401",
+      "method": "GET",
+      "path": "/?action=partner_apps",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST partner_set_status без токена → 401",
+      "method": "POST",
+      "path": "/?action=partner_set_status",
+      "body": {"app_id": 1, "status": "approved"},
+      "expectedStatus": 401
+    },
+    {
       "name": "OPTIONS preflight",
       "method": "OPTIONS",
       "path": "/",
