@@ -141,7 +141,7 @@ function MainApp() {
   }, [user, initialized, page]);
 
   const pageMap: Record<Page, JSX.Element> = {
-    dashboard: <Dashboard setPage={guardedSetPage} />,
+    dashboard: <Dashboard setPage={guardedSetPage} onRegisterClick={() => { setAuthMode("register"); setAuthReason(undefined); setAuthOpen(true); }} />,
     campaigns: <Campaigns />,
     contacts: <Contacts />,
     editor: <EmailEditor />,

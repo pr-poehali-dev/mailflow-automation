@@ -4,19 +4,41 @@ import { StatusBadge, MiniChart } from "@/components/shared";
 import { Page } from "@/data/mockData";
 import { fetchCampaigns, Campaign } from "@/api";
 import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist";
+import { useAuth } from "@/contexts/AuthContext";
+import LandingHero from "@/components/pages/landing/LandingHero";
 
-export function Dashboard({ setPage }: { setPage: (p: Page) => void }) {
+interface DashboardProps {
+  setPage: (p: Page) => void;
+  onRegisterClick?: () => void;
+}
+
+export function Dashboard({ setPage, onRegisterClick }: DashboardProps) {
+  const { user, initialized } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [stats, setStats] = useState({ contacts_count: 0, total_sent: 0, avg_open_rate: 0 });
   const [loading, setLoading] = useState(true);
 
+  const isGuest = initialized && !user;
+
   useEffect(() => {
+    if (isGuest) { setLoading(false); return; }
     fetchCampaigns().then((data) => {
       setCampaigns(data.campaigns);
       setStats(data.stats);
       setLoading(false);
     });
-  }, []);
+  }, [isGuest]);
+
+  if (isGuest) {
+    return (
+      <div className="p-4 sm:p-6">
+        <LandingHero
+          onRegisterClick={onRegisterClick || (() => setPage("pricing"))}
+          setPage={setPage}
+        />
+      </div>
+    );
+  }
 
   const statCards = [
     { label: "Контактов", value: loading ? "..." : stats.contacts_count.toLocaleString(), icon: "Users", color: "var(--neon-purple)" },
