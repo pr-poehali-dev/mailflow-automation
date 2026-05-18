@@ -20,8 +20,6 @@ export function AuthModal({ open, onClose, initialMode = "register", reason }: P
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agree, setAgree] = useState(false);
-  const [agreePrivacy, setAgreePrivacy] = useState(false);
-  const [agreeMarketing, setAgreeMarketing] = useState(true);
 
   useEffect(() => { if (open) setMode(initialMode); }, [open, initialMode]);
   useEffect(() => { if (user && open) onClose(); }, [user, open, onClose]);
@@ -63,8 +61,7 @@ export function AuthModal({ open, onClose, initialMode = "register", reason }: P
       if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
         setError("Пароль должен содержать буквы и цифры"); return;
       }
-      if (!agree) { setError("Нужно принять договор-оферту"); return; }
-      if (!agreePrivacy) { setError("Нужно согласие на обработку персональных данных (152-ФЗ)"); return; }
+      if (!agree) { setError("Подтвердите согласие с условиями"); return; }
     } else if (password.length < 1) {
       setError("Введите пароль"); return;
     }
@@ -73,8 +70,8 @@ export function AuthModal({ open, onClose, initialMode = "register", reason }: P
       ? await login(emailClean, password)
       : await register(emailClean, password, nameClean, {
           offer: agree,
-          privacy: agreePrivacy,
-          marketing: agreeMarketing,
+          privacy: agree,
+          marketing: true,
         });
 
     if (!res.ok) setError(res.error || "Ошибка");
@@ -212,49 +209,25 @@ export function AuthModal({ open, onClose, initialMode = "register", reason }: P
             </div>
 
             {mode === "register" && (
-              <div className="space-y-2">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={agree}
-                    onChange={(e) => setAgree(e.target.checked)}
-                    className="mt-0.5 flex-shrink-0"
-                  />
-                  <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    Принимаю{" "}
-                    <a href="/legal/offer" target="_blank" rel="noopener" className="underline hover:text-foreground">
-                      договор-оферту
-                    </a>{" "}
-                    и подтверждаю ознакомление с условиями использования <span className="text-red-500">*</span>
-                  </span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={agreePrivacy}
-                    onChange={(e) => setAgreePrivacy(e.target.checked)}
-                    className="mt-0.5 flex-shrink-0"
-                  />
-                  <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    Согласен на{" "}
-                    <a href="/legal/privacy" target="_blank" rel="noopener" className="underline hover:text-foreground">
-                      обработку персональных данных
-                    </a>{" "}
-                    в соответствии с 152-ФЗ <span className="text-red-500">*</span>
-                  </span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={agreeMarketing}
-                    onChange={(e) => setAgreeMarketing(e.target.checked)}
-                    className="mt-0.5 flex-shrink-0"
-                  />
-                  <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    Согласен получать новости и материалы об улучшениях сервиса (можно отозвать в любой момент)
-                  </span>
-                </label>
-              </div>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agree}
+                  onChange={(e) => setAgree(e.target.checked)}
+                  className="mt-0.5 flex-shrink-0"
+                />
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  Принимаю{" "}
+                  <a href="/legal/offer" target="_blank" rel="noopener" className="underline hover:text-foreground">
+                    договор-оферту
+                  </a>{" "}
+                  и согласен на{" "}
+                  <a href="/legal/privacy" target="_blank" rel="noopener" className="underline hover:text-foreground">
+                    обработку персональных данных
+                  </a>{" "}
+                  по 152-ФЗ
+                </span>
+              </label>
             )}
 
             {error && (
