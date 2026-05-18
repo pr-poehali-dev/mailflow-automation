@@ -1,0 +1,50 @@
+{
+  "tests": [
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Validate FIRST30 promo",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"code": "FIRST30", "amount": 1000},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true, "discount_amount": 300, "final_amount": 700},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Validate WELCOME promo (15 percent)",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"code": "WELCOME", "amount": 2000},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true, "discount_amount": 300, "final_amount": 1700},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Invalid promo code",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"code": "NOTEXIST", "amount": 1000},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": false, "error": "not_found"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Empty code",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"code": "", "amount": 1000},
+      "expectedStatus": 400,
+      "expectedBody": {"ok": false, "error": "empty_code"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

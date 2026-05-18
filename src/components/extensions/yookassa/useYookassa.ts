@@ -26,6 +26,9 @@ export interface PaymentPayload {
   cartItems?: CartItem[];
   planId?: string;
   billingPeriod?: "monthly" | "yearly";
+  promoCode?: string;
+  originalAmount?: number;
+  discountAmount?: number;
 }
 
 export interface PaymentResponse {
@@ -125,6 +128,9 @@ export function useYookassa(options: UseYookassaOptions): UseYookassaReturn {
           cart_items: payload.cartItems || [],
           plan_id: payload.planId || "",
           billing_period: payload.billingPeriod || "",
+          promo_code: payload.promoCode || "",
+          original_amount: payload.originalAmount,
+          discount_amount: payload.discountAmount || 0,
         };
 
         const authHeaders: Record<string, string> = {};
